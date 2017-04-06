@@ -15,18 +15,23 @@ public class Grid : MonoBehaviour {
     private void Start () {
     }
 
+    //Initialise the grid GameObject
     public void Init(GameObject model, float gridCellSize) {
 
+        //Init the Prefab
         var gridCellPrefab = Resources.Load("Prefabs/GridCell");
 
+        //Get the model size using its mesh collider
         var modelSize = FindMaxVectorPos(model);
 
-        var nbCells = (int) (modelSize / gridCellSize);
-        cells = new GridCell[nbCells, nbCells, nbCells];
+        //Init the data matrix
+        var cellsPerDim = (int) (modelSize * 2 / gridCellSize) + 1;
+        cells = new GridCell[cellsPerDim, cellsPerDim, cellsPerDim];
         var xi = 0;
         var yi = 0;
         var zi = 0;
 
+        //Init GameObject matrix
         for (var x = -modelSize; x < modelSize; x += gridCellSize) {
             for (var y = -modelSize; y < modelSize; y += gridCellSize) {
                 for (var z = -modelSize; z < modelSize; z += gridCellSize) {
@@ -38,13 +43,14 @@ public class Grid : MonoBehaviour {
                     var initPoint = new Vector3(x + gridCellSize / 2, y + gridCellSize / 2, z + gridCellSize / 2);
                     gCell.Init(initPoint, gridCellSize);
 
-                    //Add cell to the cells.
+                    //Add cell to the data struct
                     cells[xi, yi, zi] = gCell;
-
                     zi++;
                 }
+                zi = 0;
                 yi++;
             }
+            yi = 0;
             xi++;
         }
 
