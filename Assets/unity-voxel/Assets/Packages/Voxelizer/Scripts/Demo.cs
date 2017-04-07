@@ -1,7 +1,4 @@
 ﻿using UnityEngine;
-using System;
-using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -49,7 +46,7 @@ namespace mattatz.VoxelSystem {
             var gridObj = Instantiate(gridPrefab, Vector3.zero, Quaternion.identity) as GameObject;
             var grid = gridObj.GetComponent<Grid>();
             //grid.Init2(inputModelSize.y, 200f);
-            grid.Init(this.gameObject, 5f);
+            grid.Init(this.gameObject, 10f);
         }
         
         // void Update () {}
