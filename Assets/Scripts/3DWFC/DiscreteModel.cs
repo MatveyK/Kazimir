@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class DiscreteModel {
@@ -14,6 +15,7 @@ public class DiscreteModel {
         InitNeighboursMap(inputMatrix);
 
         InitOutputMatrix(outputSize, inputMatrix);
+        Observe();
     }
 
     private void AssignIdsToCells(GridCell[,,] matrix) {
@@ -59,6 +61,29 @@ public class DiscreteModel {
                         outputMatrix[x, y, z].Add(cell.Id);
                     }
                 }
+            }
+        }
+    }
+
+    private void Observe() {
+
+        bool cellSelected = false;
+
+        while (!cellSelected) {
+            //Generate random coordinates for random cell selection
+            var randomX = Random.Range(0, outputMatrix.GetLength(0));
+            var randomY = Random.Range(0, outputMatrix.GetLength(1));
+            var randomZ = Random.Range(0, outputMatrix.GetLength(2));
+
+            //Check if the cell has already collapsed into a definite state
+            //If not, collapse it into a definite state
+            // TODO Add distribution criteria to the cell state collapse
+            var cell = outputMatrix[randomX, randomY, randomZ];
+            if (cell.Count == 1) {
+                cellSelected = false;
+            }
+            else {
+                cell = cell.Where((value, index) => index == Random.Range(0, cell.Count)).ToList();
             }
         }
     }
