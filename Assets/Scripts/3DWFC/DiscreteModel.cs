@@ -5,11 +5,15 @@ public class DiscreteModel {
 
     private Dictionary<int, List<int>> neighboursMap;
 
-    public DiscreteModel(GridCell[,,] matrix) {
+    private List<int>[,,] outputMatrix;
+
+    public DiscreteModel(GridCell[,,] inputMatrix, int outputSize) {
         neighboursMap = new Dictionary<int, List<int>>();
 
-        AssignIdsToCells(matrix);
-        InitNeighboursMap(matrix);
+        AssignIdsToCells(inputMatrix);
+        InitNeighboursMap(inputMatrix);
+
+        InitOutputMatrix(outputSize, inputMatrix);
     }
 
     private void AssignIdsToCells(GridCell[,,] matrix) {
@@ -42,6 +46,23 @@ public class DiscreteModel {
             }
         }
     }
+
+    private void InitOutputMatrix(int size, GridCell[,,] inputMatrix) {
+        outputMatrix = new List<int>[size, size, size];
+
+        for (var x = 0; x < size; x++) {
+            for (var y = 0; y < size; y++) {
+                for (var z = 0; z < size; z++) {
+                    outputMatrix[x, y, z] = new List<int>();
+
+                    foreach (var cell in inputMatrix) {
+                        outputMatrix[x, y, z].Add(cell.Id);
+                    }
+                }
+            }
+        }
+    }
+
 
 
     public Dictionary<int, List<int>> NeighboursMap {
