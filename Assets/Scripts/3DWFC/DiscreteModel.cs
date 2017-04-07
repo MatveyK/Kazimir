@@ -67,9 +67,9 @@ public class DiscreteModel {
 
     private void Observe() {
 
-        bool cellSelected = false;
+        var cellCollapsed = true;
 
-        while (!cellSelected) {
+        while (cellCollapsed) {
             //Generate random coordinates for random cell selection
             var randomX = Random.Range(0, outputMatrix.GetLength(0));
             var randomY = Random.Range(0, outputMatrix.GetLength(1));
@@ -80,12 +80,17 @@ public class DiscreteModel {
             // TODO Add distribution criteria to the cell state collapse
             var cell = outputMatrix[randomX, randomY, randomZ];
             if (cell.Count == 1) {
-                cellSelected = false;
+                cellCollapsed = true;
             }
             else {
                 cell = cell.Where((value, index) => index == Random.Range(0, cell.Count)).ToList();
+                cellCollapsed = false;
             }
         }
+    }
+
+    private void Propagate() {
+
     }
 
 
