@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class GridCell : MonoBehaviour {
 
+    public int Id;
+
 	List<GameObject> containedVoxels;
 
 	Bounds bounds;

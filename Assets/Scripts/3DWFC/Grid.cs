@@ -56,6 +56,9 @@ public class Grid : MonoBehaviour {
 
         //Determine the number of batches
         nbBatches = cells.Length/ BatchSize;
+
+        DiscreteModel mod = new DiscreteModel(cells);
+        Debug.Log("HERE: " + mod.NeighboursMap[0]);
     }
 
     private void Update() {
