@@ -6,9 +6,11 @@ public class DiscreteModel {
 
     private readonly Dictionary<int, Dictionary<string, int>> neighboursMap;
 
+    private bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
 
     public DiscreteModel(GridCell[,,] inputMatrix, int outputSize) {
+        mapOfChanges = new bool[outputSize, outputSize, outputSize];
         neighboursMap = new Dictionary<int, Dictionary<string, int>>();
 
         AssignIdsToCells(inputMatrix);
@@ -65,6 +67,16 @@ public class DiscreteModel {
         }
     }
 
+    private void ReInitMapOfChanges() {
+        for (var x = 0; x < outputMatrix.GetLength(0); x++) {
+            for (var y = 0; y < outputMatrix.GetLength(1); y++) {
+                for (var z = 0; z < outputMatrix.GetLength(2); z++) {
+                    mapOfChanges[x, y, z] = false;
+                }
+            }
+        }
+    }
+
     private void Observe() {
 
         var cellCollapsed = true;
@@ -89,8 +101,8 @@ public class DiscreteModel {
         }
     }
 
-    private void Propagate() {
-
+    private void Propagate(int changedCellX, int changedCellY, int changedCellZ) {
+        
     }
 
 
