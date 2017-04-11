@@ -21,20 +21,19 @@ public class Grid : MonoBehaviour {
         //Init the Prefab
         var gridCellPrefab = Resources.Load("Prefabs/GridCell");
 
-        //Get the model size using its mesh collider
+        //Get the model size (represented as a vector in 3D) using its mesh collider
         var modelSize = FindMaxVectorPos(model);
 
         //Init the data matrix
-        var cellsPerDim = (int) (modelSize * 2 / gridCellSize) + 1;
-        cells = new GridCell[cellsPerDim, cellsPerDim, cellsPerDim];
+        InitDataMatrix(modelSize, gridCellSize);
         var xi = 0;
         var yi = 0;
         var zi = 0;
 
         //Init GameObject matrix
-        for (var x = -modelSize; x < modelSize; x += gridCellSize) {
-            for (var y = -modelSize; y < modelSize; y += gridCellSize) {
-                for (var z = -modelSize; z < modelSize; z += gridCellSize) {
+        for (var x = -modelSize.x; x < modelSize.x; x += gridCellSize) {
+            for (float y = 0; y < modelSize.y; y += gridCellSize) {
+                for (var z = -modelSize.z; z < modelSize.z; z += gridCellSize) {
                     var gridCellObj = Instantiate(gridCellPrefab) as GameObject;
                     var gCell = gridCellObj.GetComponent<GridCell>();
 
@@ -57,7 +56,7 @@ public class Grid : MonoBehaviour {
         //Determine the number of batches
         nbBatches = cells.Length/ BatchSize;
 
-        DiscreteModel mod = new DiscreteModel(cells, cellsPerDim * 2);
+        DiscreteModel mod = new DiscreteModel(cells, 100);
         Debug.Log("HERE: " + mod.NeighboursMap[0].Count);
     }
 
@@ -76,25 +75,35 @@ public class Grid : MonoBehaviour {
         }
     }
 
-    private static float FindMaxVectorPos(GameObject model) {
-        float modelSize = 0;
+    private static Vector3 FindMaxVectorPos(GameObject model) {
+        var sizeVec = Vector3.zero;
+
         foreach (Transform child in model.transform) {
-            var absValue = Math.Abs(modelSize);
+            var absValueX = Math.Abs(sizeVec.x);
+            var absValueY = Math.Abs(sizeVec.y);
+            var absValueZ = Math.Abs(sizeVec.z);
 
-            if (Math.Abs(child.position.x) > absValue) {
-                modelSize = Math.Abs(child.position.x);
+            if (Math.Abs(child.position.x) > absValueX) {
+                sizeVec.x = Math.Abs(child.position.x);
             }
 
-            if (Math.Abs(child.position.y) > absValue) {
-                modelSize = Math.Abs(child.position.y);
+            if (Math.Abs(child.position.y) > absValueY) {
+                sizeVec.y = Math.Abs(child.position.y);
             }
 
-            if (Math.Abs(child.position.z) > absValue) {
-                modelSize = Math.Abs(child.position.z);
+            if (Math.Abs(child.position.z) > absValueZ) {
+                sizeVec.z = Math.Abs(child.position.z);
             }
         }
 
-        return modelSize;
+        return sizeVec;
+    }
+
+    private void InitDataMatrix(Vector3 modelSize, float gridCellSize) {
+        var cellsPerDimX = (int) (modelSize.x * 2 / gridCellSize) + 1;
+        var cellsPerDimY = (int) (modelSize.y * 2 / gridCellSize) + 1;
+        var cellsPerDimZ = (int) (modelSize.z * 2 / gridCellSize) + 1;
+        cells = new GridCell[cellsPerDimX, cellsPerDimY, cellsPerDimZ];
     }
 
 
