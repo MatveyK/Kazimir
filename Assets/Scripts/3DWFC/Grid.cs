@@ -56,7 +56,7 @@ public class Grid : MonoBehaviour {
         //Determine the number of batches
         nbBatches = cells.Length/ BatchSize;
 
-        DiscreteModel mod = new DiscreteModel(cells, 100);
+        DiscreteModel mod = new DiscreteModel(cells, new Vector3(100, 100, 100));
         Debug.Log("HERE: " + mod.NeighboursMap[0].Count);
     }
 
@@ -101,7 +101,8 @@ public class Grid : MonoBehaviour {
 
     private void InitDataMatrix(Vector3 modelSize, float gridCellSize) {
         var cellsPerDimX = (int) (modelSize.x * 2 / gridCellSize) + 1;
-        var cellsPerDimY = (int) (modelSize.y * 2 / gridCellSize) + 1;
+        //Do not multiply y by two since we start y at zero coordinate.
+        var cellsPerDimY = (int) (modelSize.y / gridCellSize) + 1;
         var cellsPerDimZ = (int) (modelSize.z * 2 / gridCellSize) + 1;
         cells = new GridCell[cellsPerDimX, cellsPerDimY, cellsPerDimZ];
     }

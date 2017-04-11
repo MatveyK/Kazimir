@@ -9,8 +9,8 @@ public class DiscreteModel {
     private bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
 
-    public DiscreteModel(GridCell[,,] inputMatrix, int outputSize) {
-        mapOfChanges = new bool[outputSize, outputSize, outputSize];
+    public DiscreteModel(GridCell[,,] inputMatrix, Vector3 outputSize) {
+        mapOfChanges = new bool[(int) outputSize.x, (int) outputSize.y, (int) outputSize.z];
         neighboursMap = new Dictionary<int, Dictionary<string, int>>();
 
         AssignIdsToCells(inputMatrix);
@@ -51,12 +51,12 @@ public class DiscreteModel {
         }
     }
 
-    private void InitOutputMatrix(int size, GridCell[,,] inputMatrix) {
-        outputMatrix = new List<int>[size, size, size];
+    private void InitOutputMatrix(Vector3 size, GridCell[,,] inputMatrix) {
+        outputMatrix = new List<int>[(int) size.x, (int) size.y, (int) size.z];
 
-        for (var x = 0; x < size; x++) {
-            for (var y = 0; y < size; y++) {
-                for (var z = 0; z < size; z++) {
+        for (var x = 0; x < size.x; x++) {
+            for (var y = 0; y < size.y; y++) {
+                for (var z = 0; z < size.z; z++) {
                     outputMatrix[x, y, z] = new List<int>();
 
                     foreach (var cell in inputMatrix) {
