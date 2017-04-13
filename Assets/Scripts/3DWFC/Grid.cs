@@ -53,6 +53,8 @@ public class Grid : MonoBehaviour {
             xi++;
         }
 
+        Debug.Log("TOTAL CELLS: " + cells.Length);
+
         //Determine the number of batches
         nbBatches = cells.Length/ BatchSize;
 

@@ -13,6 +13,8 @@ public class DiscreteModel {
         mapOfChanges = new bool[(int) outputSize.x, (int) outputSize.y, (int) outputSize.z];
         neighboursMap = new Dictionary<int, Dictionary<string, int>>();
 
+        MergeDoubleCells(inputMatrix);
+
         AssignIdsToCells(inputMatrix);
         InitNeighboursMap(inputMatrix);
 
@@ -65,6 +67,37 @@ public class DiscreteModel {
                 }
             }
         }
+    }
+
+    private void MergeDoubleCells(GridCell[,,] inputMatrix) {
+        int same = 0;
+        foreach (var gridCell in inputMatrix) {
+            foreach (var otherGridCell in inputMatrix) {
+                if (CompareCells(gridCell, otherGridCell)) same++;
+            }
+        }
+        Debug.Log("SAME CELLS: " + same);
+        Debug.Log(Vector3.SqrMagnitude(new Vector3(2.45f, 2.97f, -1.5f) - new Vector3(1.70f, 2.97f, -1.5f)));
+    }
+
+    private bool CompareCells(GridCell firstCell, GridCell secondCell) {
+
+        //First check if they have the same number of voxels
+        if (firstCell.ContainedVoxels.Count != secondCell.ContainedVoxels.Count)
+            return false;
+
+        //Then check if the positions of each two voxels in the cell match to a certain
+        //threshold.
+        int sameVoxels = 0;
+        foreach (var voxel in firstCell.ContainedVoxels) {
+            foreach (var otherVoxel in secondCell.ContainedVoxels) {
+                if (Vector3.SqrMagnitude(voxel.transform.localPosition - otherVoxel.transform.localPosition) < 0.6f) {
+                    sameVoxels++;
+                }
+            }
+        }
+
+        return sameVoxels == firstCell.ContainedVoxels.Count;
     }
 
     private void ReInitMapOfChanges() {
