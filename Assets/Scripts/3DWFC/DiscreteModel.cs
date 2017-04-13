@@ -80,7 +80,7 @@ public class DiscreteModel {
         Debug.Log(Vector3.SqrMagnitude(new Vector3(2.45f, 2.97f, -1.5f) - new Vector3(1.70f, 2.97f, -1.5f)));
     }
 
-    private bool CompareCells(GridCell firstCell, GridCell secondCell) {
+    private static bool CompareCells(GridCell firstCell, GridCell secondCell) {
 
         //First check if they have the same number of voxels
         if (firstCell.ContainedVoxels.Count != secondCell.ContainedVoxels.Count)
@@ -88,14 +88,11 @@ public class DiscreteModel {
 
         //Then check if the positions of each two voxels in the cell match to a certain
         //threshold.
-        int sameVoxels = 0;
-        foreach (var voxel in firstCell.ContainedVoxels) {
-            foreach (var otherVoxel in secondCell.ContainedVoxels) {
-                if (Vector3.SqrMagnitude(voxel.transform.localPosition - otherVoxel.transform.localPosition) < 0.6f) {
-                    sameVoxels++;
-                }
-            }
-        }
+        var sameVoxels = (from voxel in firstCell.ContainedVoxels
+            from otherVoxel in secondCell.ContainedVoxels
+            where Vector3.SqrMagnitude(voxel.transform.localPosition - otherVoxel.transform.localPosition) < 0.6f
+            select voxel)
+            .Count();
 
         return sameVoxels == firstCell.ContainedVoxels.Count;
     }
