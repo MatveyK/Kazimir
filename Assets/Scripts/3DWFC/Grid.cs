@@ -58,22 +58,11 @@ public class Grid : MonoBehaviour {
         //Determine the number of batches
         nbBatches = cells.Length/ BatchSize;
 
-        DiscreteModel mod = new DiscreteModel(cells, new Vector3(100, 100, 100));
-        Debug.Log("HERE: " + mod.NeighboursMap[0].Count);
     }
 
     private void Update() {
-        if (batchesFinished < nbBatches) {
-            for (var i = batchesFinished * BatchSize; i < batchesFinished * BatchSize + BatchSize; i++) {
-                /*
-                foreach (var voxel in cells[i].ContainedVoxels) {
-                    voxel.GetComponent<MeshRenderer>().enabled = false;
-                }
-*/
-                //cells[i].transform.position = new Vector3(Random.Range(-50, 0), Random.Range(-50, 0), Random.Range(-50, 0));
-            }
-            batchesFinished++;
-            Debug.Log("Processed: " + batchesFinished * BatchSize + "/" + cells.Length);
+        if (Input.GetKeyDown("space")) {
+            DiscreteModel mod = new DiscreteModel(cells, new Vector3(100, 100, 100));
         }
     }
 
