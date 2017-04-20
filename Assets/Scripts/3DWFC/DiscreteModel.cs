@@ -19,6 +19,7 @@ public class DiscreteModel {
         InitNeighboursMap(inputMatrix);
 
         InitOutputMatrix(outputSize, inputMatrix);
+
         Observe();
     }
 
@@ -40,6 +41,9 @@ public class DiscreteModel {
         foreach (var gridCell in matrix) {
             foreach (var direction in directions) {
                 neighboursMap[gridCell.Id][direction] = new List<int>();
+
+                //Add self for testing purposes TODO REMOVE this
+                neighboursMap[gridCell.Id][direction].Add(gridCell.Id);
             }
         }
 
@@ -137,11 +141,44 @@ public class DiscreteModel {
                 outputMatrix[randomX, randomY, randomZ] = cell.Where((value, index) => index == Random.Range(0, cell.Count)).ToList();
                 cellCollapsed = false;
             }
+
+            Propagate(randomX, randomY, randomZ);
         }
     }
 
-    private void Propagate(int changedCellX, int changedCellY, int changedCellZ) {
-        
+    private void Propagate(int x, int y, int z) {
+        ReInitMapOfChanges();
+
+        PropagateInfo(x, y, z);
+    }
+
+    private void PropagateInfo(int x, int y, int z) {
+        mapOfChanges[x, y, z] = true;
+
+        //Smthn like this
+        if (!mapOfChanges.OutOfBounds(x+1, y, z) && !mapOfChanges[x + 1, y, z] && !outputMatrix.OutOfBounds(x + 1, y, z)) {
+            PropagateInfo(x + 1, y, z);
+        }
+
+        if (!mapOfChanges.OutOfBounds(x-1, y, z) && !mapOfChanges[x - 1, y, z] && !outputMatrix.OutOfBounds(x - 1, y, z)) {
+            PropagateInfo(x - 1, y, z);
+        }
+
+        if (!mapOfChanges.OutOfBounds(x, y+1, z) && !mapOfChanges[x, y + 1, z] && !outputMatrix.OutOfBounds(x, y + 1, z)) {
+            PropagateInfo(x, y+1, z);
+        }
+
+        if (!mapOfChanges.OutOfBounds(x, y-1, z) && !mapOfChanges[x, y - 1, z] && !outputMatrix.OutOfBounds(x, y - 1, z)) {
+            PropagateInfo(x, y-1, z);
+        }
+
+        if (!mapOfChanges.OutOfBounds(x, y, z+1) && !mapOfChanges[x, y, z + 1] && !outputMatrix.OutOfBounds(x, y, z + 1)) {
+            PropagateInfo(x, y, z + 1);
+        }
+
+        if (!mapOfChanges.OutOfBounds(x, y, z-1) && !mapOfChanges[x, y, z - 1] && !outputMatrix.OutOfBounds(x, y, z - 1)) {
+            PropagateInfo(x, y, z - 1);
+        }
     }
 
 
