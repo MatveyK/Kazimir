@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 public static class Extensions {
 
-    public static bool OutOfBounds<T>(this T[,,] array, int x, int y, int z) {
-        if (x >= array.GetLowerBound(0) && x <= array.GetUpperBound(0) &&
-            y >= array.GetLowerBound(1) && y <= array.GetUpperBound(1) &&
-            z >= array.GetLowerBound(2) && z <= array.GetUpperBound(2)) {
+    public static bool OutOfBounds<T>(this T[,,] array, Vector3 coords) {
+        if (coords.x >= array.GetLowerBound(0) && coords.x <= array.GetUpperBound(0) &&
+            coords.y >= array.GetLowerBound(1) && coords.y <= array.GetUpperBound(1) &&
+            coords.z >= array.GetLowerBound(2) && coords.z <= array.GetUpperBound(2)) {
             return false;
         } else {
             return true;

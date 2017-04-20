@@ -149,35 +149,24 @@ public class DiscreteModel {
     private void Propagate(int x, int y, int z) {
         ReInitMapOfChanges();
 
-        PropagateInfo(x, y, z);
-    }
+        var directions = new Vector3[6]
+            {Vector3.right, Vector3.left, Vector3.up, Vector3.down, Vector3.forward, Vector3.back};
 
-    private void PropagateInfo(int x, int y, int z) {
-        mapOfChanges[x, y, z] = true;
+        var nodesToVisit = new Queue<Vector3>();
+        nodesToVisit.Enqueue(new Vector3(x, y, z));
 
-        //Smthn like this
-        if (!mapOfChanges.OutOfBounds(x+1, y, z) && !mapOfChanges[x + 1, y, z] && !outputMatrix.OutOfBounds(x + 1, y, z)) {
-            PropagateInfo(x + 1, y, z);
-        }
+		while (nodesToVisit.Any()) {
+            var current = nodesToVisit.Dequeue();
+            mapOfChanges[(int) current.x, (int) current.y, (int) current.y] = true;
 
-        if (!mapOfChanges.OutOfBounds(x-1, y, z) && !mapOfChanges[x - 1, y, z] && !outputMatrix.OutOfBounds(x - 1, y, z)) {
-            PropagateInfo(x - 1, y, z);
-        }
+            foreach (var direction in directions) {
+                if (!mapOfChanges.OutOfBounds(current + direction) &&
+                    !mapOfChanges[(int) (current.x + direction.x), (int) (current.y + direction.y), (int) (current.z + direction.z)] &&
+                    !outputMatrix.OutOfBounds(current + direction)) {
 
-        if (!mapOfChanges.OutOfBounds(x, y+1, z) && !mapOfChanges[x, y + 1, z] && !outputMatrix.OutOfBounds(x, y + 1, z)) {
-            PropagateInfo(x, y+1, z);
-        }
-
-        if (!mapOfChanges.OutOfBounds(x, y-1, z) && !mapOfChanges[x, y - 1, z] && !outputMatrix.OutOfBounds(x, y - 1, z)) {
-            PropagateInfo(x, y-1, z);
-        }
-
-        if (!mapOfChanges.OutOfBounds(x, y, z+1) && !mapOfChanges[x, y, z + 1] && !outputMatrix.OutOfBounds(x, y, z + 1)) {
-            PropagateInfo(x, y, z + 1);
-        }
-
-        if (!mapOfChanges.OutOfBounds(x, y, z-1) && !mapOfChanges[x, y, z - 1] && !outputMatrix.OutOfBounds(x, y, z - 1)) {
-            PropagateInfo(x, y, z - 1);
+                    nodesToVisit.Enqueue(current + direction);
+                }
+            }
         }
     }
 
