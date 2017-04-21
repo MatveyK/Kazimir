@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class DiscreteModel {
 
@@ -142,29 +144,29 @@ public class DiscreteModel {
                 cellCollapsed = false;
             }
 
-            Propagate(randomX, randomY, randomZ);
+            Propagate(0, 0, 0);
         }
     }
 
     private void Propagate(int x, int y, int z) {
         ReInitMapOfChanges();
 
-        var directions = new Vector3[6]
-            {Vector3.right, Vector3.left, Vector3.up, Vector3.down, Vector3.forward, Vector3.back};
+        var directions = new Coord3D[6]
+            {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
 
-        var nodesToVisit = new Queue<Vector3>();
-        nodesToVisit.Enqueue(new Vector3(x, y, z));
+        var nodesToVisit = new Queue<Coord3D>();
+        nodesToVisit.Enqueue(new Coord3D(x, y, z));
 
 		while (nodesToVisit.Any()) {
             var current = nodesToVisit.Dequeue();
-            mapOfChanges[(int) current.x, (int) current.y, (int) current.y] = true;
+		    mapOfChanges.SetValue(true, current.x, current.y, current.z);
 
             foreach (var direction in directions) {
-                if (!mapOfChanges.OutOfBounds(current + direction) &&
-                    !mapOfChanges[(int) (current.x + direction.x), (int) (current.y + direction.y), (int) (current.z + direction.z)] &&
-                    !outputMatrix.OutOfBounds(current + direction)) {
+                if (!mapOfChanges.OutOfBounds(current.Add(direction)) &&
+                    !mapOfChanges[current.x + direction.x, current.y + direction.y, current.z + direction.z] &&
+                    !outputMatrix.OutOfBounds(current.Add(direction))) {
 
-                    nodesToVisit.Enqueue(current + direction);
+                    nodesToVisit.Enqueue(current.Add(direction));
                 }
             }
         }
