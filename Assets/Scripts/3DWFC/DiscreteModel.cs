@@ -149,18 +149,24 @@ public class DiscreteModel {
     }
 
     private void Propagate(int x, int y, int z) {
+        //Reset the map that keeps track of the changes.
         ReInitMapOfChanges();
 
+        //All the possible directions for the propagation.
         var directions = new Coord3D[6]
             {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
 
+        //Queue the first element.
         var nodesToVisit = new Queue<Coord3D>();
         nodesToVisit.Enqueue(new Coord3D(x, y, z));
 
+        //Perform a BFS grid traversal.
 		while (nodesToVisit.Any()) {
             var current = nodesToVisit.Dequeue();
 		    mapOfChanges.SetValue(true, current.x, current.y, current.z);
 
+		    //For every possible direction check if the node has already been affected by the propagation.
+		    //If it hasn't queue it up and mark it as visited, otherwise move on.
             foreach (var direction in directions) {
                 if (!mapOfChanges.OutOfBounds(current.Add(direction)) &&
                     !mapOfChanges[current.x + direction.x, current.y + direction.y, current.z + direction.z] &&
