@@ -185,6 +185,7 @@ public class DiscreteModel {
                     outputMatrix[current.x + direction.x, current.y + direction.y, current.z + direction.z]
                         .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
 
+                    //Queue it up in order to spread the info to its neighbours and mark it as visited.
                     nodesToVisit.Enqueue(current.Add(direction));
                     mapOfChanges.SetValue(true, current.x + direction.x, current.y + direction.y, current.z + direction.z);
                 }
