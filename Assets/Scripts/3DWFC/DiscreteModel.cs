@@ -144,7 +144,7 @@ public class DiscreteModel {
                 cellCollapsed = false;
             }
 
-            Propagate(0, 0, 0);
+            Propagate(randomX, randomY, randomZ);
         }
     }
 
@@ -167,6 +167,7 @@ public class DiscreteModel {
                     !outputMatrix.OutOfBounds(current.Add(direction))) {
 
                     nodesToVisit.Enqueue(current.Add(direction));
+                    mapOfChanges.SetValue(true, current.x + direction.x, current.y + direction.y, current.z + direction.z);
                 }
             }
         }
