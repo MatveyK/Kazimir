@@ -6,14 +6,19 @@ using Random = UnityEngine.Random;
 
 public class DiscreteModel {
 
-    private readonly Dictionary<int, Dictionary<string, List<int>>> neighboursMap;
+    private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
 
     private bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
 
+    //All the possible directions.
+    public readonly Coord3D[] Directions = new Coord3D[6]
+        {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
+
+
     public DiscreteModel(GridCell[,,] inputMatrix, Vector3 outputSize) {
         mapOfChanges = new bool[(int) outputSize.x, (int) outputSize.y, (int) outputSize.z];
-        neighboursMap = new Dictionary<int, Dictionary<string, List<int>>>();
+        neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
 
         //MergeDoubleCells(inputMatrix);
 
@@ -30,7 +35,7 @@ public class DiscreteModel {
 
         foreach (var cell in matrix) {
             cell.Id = index;
-            neighboursMap[cell.Id] = new Dictionary<string, List<int>>();
+            neighboursMap[cell.Id] = new Dictionary<Coord3D, List<int>>();
 
             index++;
         }
@@ -39,9 +44,8 @@ public class DiscreteModel {
     private void InitNeighboursMap(GridCell[,,] matrix) {
 
         //Init the data structure
-        var directions = new string[6] { "left", "right", "down", "up", "back", "front" };
         foreach (var gridCell in matrix) {
-            foreach (var direction in directions) {
+            foreach (var direction in Directions) {
                 neighboursMap[gridCell.Id][direction] = new List<int>();
 
                 //Add self for testing purposes TODO REMOVE this
@@ -55,14 +59,14 @@ public class DiscreteModel {
                 for (var z = 0; z < matrix.GetLength(2); z++) {
                     var currentCell = matrix[x, y, z];
 
-                    if(x-1 >= 0) neighboursMap[currentCell.Id]["left"].Add(matrix[x-1, y ,z].Id);
-                    if (x + 1 < matrix.GetLength(0)) neighboursMap[currentCell.Id]["right"].Add(matrix[x+1, y, z].Id);
+                    if(x-1 >= 0) neighboursMap[currentCell.Id][Coord3D.Left].Add(matrix[x-1, y ,z].Id);
+                    if (x + 1 < matrix.GetLength(0)) neighboursMap[currentCell.Id][Coord3D.Right].Add(matrix[x+1, y, z].Id);
 
-                    if(y-1 >= 0) neighboursMap[currentCell.Id]["down"].Add(matrix[x, y-1, z].Id);
-                    if(y+1 < matrix.GetLength(1)) neighboursMap[currentCell.Id]["up"].Add(matrix[x, y+1, z].Id);
+                    if(y-1 >= 0) neighboursMap[currentCell.Id][Coord3D.Down].Add(matrix[x, y-1, z].Id);
+                    if(y+1 < matrix.GetLength(1)) neighboursMap[currentCell.Id][Coord3D.Up].Add(matrix[x, y+1, z].Id);
 
-                    if(z-1 >= 0) neighboursMap[currentCell.Id]["back"].Add(matrix[x, y, z-1].Id);
-                    if(z+1 < matrix.GetLength(2)) neighboursMap[currentCell.Id]["front"].Add(matrix[x, y, z+1].Id);
+                    if(z-1 >= 0) neighboursMap[currentCell.Id][Coord3D.Back].Add(matrix[x, y, z-1].Id);
+                    if(z+1 < matrix.GetLength(2)) neighboursMap[currentCell.Id][Coord3D.Forward].Add(matrix[x, y, z+1].Id);
                 }
             }
         }
@@ -152,10 +156,6 @@ public class DiscreteModel {
         //Reset the map that keeps track of the changes.
         ReInitMapOfChanges();
 
-        //All the possible directions for the propagation.
-        var directions = new Coord3D[6]
-            {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
-
         //Queue the first element.
         var nodesToVisit = new Queue<Coord3D>();
         nodesToVisit.Enqueue(new Coord3D(x, y, z));
@@ -170,15 +170,20 @@ public class DiscreteModel {
 
 		    var allowedNghbrs = nghbrsMaps.SelectMany(dict => dict)
 		        .ToLookup(pair => pair.Key, pair => pair.Value)
-		        .ToDictionary(group => group.Key, group => group.ToList());
+		        .ToDictionary(group => group.Key, group => group.SelectMany(list => list).ToList());
 
 
 		    //For every possible direction check if the node has already been affected by the propagation.
 		    //If it hasn't queue it up and mark it as visited, otherwise move on.
-            foreach (var direction in directions) {
+            foreach (var direction in Directions) {
                 if (!mapOfChanges.OutOfBounds(current.Add(direction)) &&
                     !mapOfChanges[current.x + direction.x, current.y + direction.y, current.z + direction.z] &&
                     !outputMatrix.OutOfBounds(current.Add(direction))) {
+
+                    //Eliminate neighbours that are not allowed from the output matrix
+                    var allowedNghbrsInDirection = allowedNghbrs[direction];
+                    outputMatrix[current.x + direction.x, current.y + direction.y, current.z + direction.z]
+                        .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
 
                     nodesToVisit.Enqueue(current.Add(direction));
                     mapOfChanges.SetValue(true, current.x + direction.x, current.y + direction.y, current.z + direction.z);
@@ -189,7 +194,7 @@ public class DiscreteModel {
 
 
 
-    public Dictionary<int, Dictionary<string, List<int>>> NeighboursMap {
+    public Dictionary<int, Dictionary<Coord3D, List<int>>> NeighboursMap {
         get { return neighboursMap; }
     }
 }
