@@ -165,6 +165,14 @@ public class DiscreteModel {
             var current = nodesToVisit.Dequeue();
 		    mapOfChanges.SetValue(true, current.x, current.y, current.z);
 
+            //Get the list of the allowed neighbours of the current node
+		    var nghbrsMaps = outputMatrix[current.x, current.y, current.z].Select(possibleElement => NeighboursMap[possibleElement]).ToList();
+
+		    var allowedNghbrs = nghbrsMaps.SelectMany(dict => dict)
+		        .ToLookup(pair => pair.Key, pair => pair.Value)
+		        .ToDictionary(group => group.Key, group => group.ToList());
+
+
 		    //For every possible direction check if the node has already been affected by the propagation.
 		    //If it hasn't queue it up and mark it as visited, otherwise move on.
             foreach (var direction in directions) {
