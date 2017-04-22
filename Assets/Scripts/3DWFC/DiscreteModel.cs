@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 
 public class DiscreteModel {
 
@@ -14,6 +13,8 @@ public class DiscreteModel {
     //All the possible directions.
     public readonly Coord3D[] Directions = new Coord3D[6]
         {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
+
+    private static readonly Random rnd = new Random();
 
 
     public DiscreteModel(GridCell[,,] inputMatrix, Vector3 outputSize) {
@@ -27,7 +28,7 @@ public class DiscreteModel {
 
         InitOutputMatrix(outputSize, inputMatrix);
 
-        Observe();
+        Debug.Log("Model Ready!");
     }
 
     private void AssignIdsToCells(GridCell[,,] matrix) {
@@ -126,30 +127,23 @@ public class DiscreteModel {
         }
     }
 
-    private void Observe() {
+    public void Observe() {
 
-        var cellCollapsed = true;
+        // TODO Add distribution criteria to the cell state collapse
 
-        while (cellCollapsed) {
-            //Generate random coordinates for random cell selection
-            var randomX = Random.Range(0, outputMatrix.GetLength(0));
-            var randomY = Random.Range(0, outputMatrix.GetLength(1));
-            var randomZ = Random.Range(0, outputMatrix.GetLength(2));
+        //Build a list of nodes that have not been collapsed to a definite state.
+        var collapsableNodes = GetCollapsableNodes();
 
-            //Check if the cell has already collapsed into a definite state
-            //If not, collapse it into a definite state
-            // TODO Add distribution criteria to the cell state collapse
-            var cell = outputMatrix[randomX, randomY, randomZ];
-            if (cell.Count == 1) {
-                cellCollapsed = true;
-            }
-            else {
-                outputMatrix[randomX, randomY, randomZ] = cell.Where((value, index) => index == Random.Range(0, cell.Count)).ToList();
-                cellCollapsed = false;
-            }
+        //Pick a random node from the collapsible nodes.
+        var nodeCoords = collapsableNodes[rnd.Next(collapsableNodes.Count)];
+        var node = outputMatrix[nodeCoords.x, nodeCoords.y, nodeCoords.z];
 
-            Propagate(randomX, randomY, randomZ);
-        }
+        //Collapse it to a random definite state.
+        outputMatrix.SetValue(new List<int>() { node[rnd.Next(node.Count)] }, nodeCoords.x, nodeCoords.y, nodeCoords.z);
+
+        Propagate(nodeCoords.x, nodeCoords.y, nodeCoords.z);
+
+        Debug.Log("FINISHED!");
     }
 
     private void Propagate(int x, int y, int z) {
@@ -191,6 +185,20 @@ public class DiscreteModel {
                 }
             }
         }
+    }
+
+    private List<Coord3D> GetCollapsableNodes() {
+        var collapsableNodes = new List<Coord3D>();
+        for (var x = 0; x < outputMatrix.GetLength(0); x++) {
+            for (var y = 0; y < outputMatrix.GetLength(1); y++) {
+                for (var z = 0; z < outputMatrix.GetLength(2); z++) {
+                    if (outputMatrix[x, y, z].Count != 1 && outputMatrix[x, y, z].Count != 0) {
+                        collapsableNodes.Add(new Coord3D(x, y, z));
+                    }
+                }
+            }
+        }
+        return collapsableNodes;
     }
 
 

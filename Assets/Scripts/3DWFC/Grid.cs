@@ -60,9 +60,14 @@ public class Grid : MonoBehaviour {
 
     }
 
+    public DiscreteModel model;
+
     private void Update() {
+        if (Input.GetKeyDown("b")) {
+            model = new DiscreteModel(cells, new Vector3(2, 2, 2));
+        }
         if (Input.GetKeyDown("space")) {
-            DiscreteModel mod = new DiscreteModel(cells, new Vector3(100, 100, 100));
+            model.Observe();
         }
     }
 
