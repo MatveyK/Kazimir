@@ -161,7 +161,7 @@ public class DiscreteModel
         var nodesToVisit = new Queue<Coord3D>();
         nodesToVisit.Enqueue(new Coord3D(x, y, z));
 
-        //Perform a BFS grid traversal.
+        //Perform a Breadth-First grid traversal.
 		while (nodesToVisit.Any()) {
             var current = nodesToVisit.Dequeue();
 		    mapOfChanges.SetValue(true, current.x, current.y, current.z);
@@ -219,6 +219,18 @@ public class DiscreteModel
 
     private bool CheckIfFinished() {
         return outputMatrix.Cast<List<int>>().All(node => node.Count == 1);
+    }
+
+    public int[,,] GetOutput() {
+        var res = new int[outputMatrix.GetLength(0), outputMatrix.GetLength(1), outputMatrix.GetLength(2)];
+        for (var x = 0; x < outputMatrix.GetLength(0); x++) {
+            for (var y = 0; y < outputMatrix.GetLength(1); y++) {
+                for (var z = 0; z < outputMatrix.GetLength(2); z++) {
+                    res[x, y, z] = outputMatrix[x, y, z].First();
+                }
+            }
+        }
+        return res;
     }
 
 

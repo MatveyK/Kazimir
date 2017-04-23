@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class Grid : MonoBehaviour {
 
-    private GridCell[,,] cells;
-
-    private const int BatchSize = 100;
-    private int nbBatches;
-    private int batchesFinished;
+    private GridCell[,,] gridMatrix;
 
 
     private void Start () {
@@ -25,7 +19,7 @@ public class Grid : MonoBehaviour {
         var modelSize = FindMaxVectorPos(model);
 
         //Init the data matrix
-        InitDataMatrix(modelSize, gridCellSize);
+        InitGridMatrix(modelSize, gridCellSize);
         var xi = 0;
         var yi = 0;
         var zi = 0;
@@ -43,7 +37,7 @@ public class Grid : MonoBehaviour {
                     gCell.Init(initPoint, gridCellSize);
 
                     //Add cell to the data struct
-                    cells[xi, yi, zi] = gCell;
+                    gridMatrix[xi, yi, zi] = gCell;
                     zi++;
                 }
                 zi = 0;
@@ -53,24 +47,9 @@ public class Grid : MonoBehaviour {
             xi++;
         }
 
-        Debug.Log("TOTAL CELLS: " + cells.Length);
-
-        //Determine the number of batches
-        nbBatches = cells.Length/ BatchSize;
+        Debug.Log("TOTAL CELLS: " + gridMatrix.Length);
     }
 
-    public DiscreteModel model;
-
-    private void Update() {
-        if (Input.GetKeyDown("b")) {
-            model = new DiscreteModel(cells, new Vector3(20, 20, 20));
-        }
-        if (Input.GetKeyDown("space")) {
-            while (!model.GenerationFinished) {
-                model.Observe();
-            }
-        }
-    }
 
     private static Vector3 FindMaxVectorPos(GameObject model) {
         var sizeVec = Vector3.zero;
@@ -96,24 +75,15 @@ public class Grid : MonoBehaviour {
         return sizeVec;
     }
 
-    private void InitDataMatrix(Vector3 modelSize, float gridCellSize) {
+    private void InitGridMatrix(Vector3 modelSize, float gridCellSize) {
         var cellsPerDimX = (int) (modelSize.x * 2 / gridCellSize) + 1;
         //Do not multiply y by two since we start y at zero coordinate.
         var cellsPerDimY = (int) (modelSize.y / gridCellSize) + 1;
         var cellsPerDimZ = (int) (modelSize.z * 2 / gridCellSize) + 1;
-        cells = new GridCell[cellsPerDimX, cellsPerDimY, cellsPerDimZ];
+        gridMatrix = new GridCell[cellsPerDimX, cellsPerDimY, cellsPerDimZ];
     }
 
-
-    public void ReArrange() {
-        foreach (var cell in cells) {
-            cell.transform.position = new Vector3(Random.Range(-50, 0), Random.Range(-50, 0), Random.Range(-50, 0));
-        }
+    public GridCell[,,] GridMatrix {
+        get { return gridMatrix; }
     }
-
-    private IEnumerator ReArrangeStart() {
-        yield return new WaitForSeconds(10);
-        ReArrange();
-    }
-
 }

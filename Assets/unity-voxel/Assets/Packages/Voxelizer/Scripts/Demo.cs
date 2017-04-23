@@ -10,7 +10,10 @@ namespace mattatz.VoxelSystem {
         [SerializeField] int count = 10;
         List<Voxel> voxels;
 
-        void Start () {
+        private Grid grid;
+        private DiscreteModel model;
+
+        private void Start () {
             var filter = GetComponent<MeshFilter>();
             voxels = Voxelizer.Voxelize(filter.mesh, count);
             voxels.ForEach(voxel => {
@@ -28,28 +31,30 @@ namespace mattatz.VoxelSystem {
                 rigidBody.isKinematic = true;
                 rigidBody.mass = 0f;
                 rigidBody.angularDrag = 0f;
-                var renderer = cube.GetComponent<MeshRenderer>();
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
             });
 			Debug.Log ("TOTAL CUBES: " + voxels.Count);
-            Debug.Log("SIZE: " + GetComponent<MeshCollider>().bounds.size);
 
-            //Lock the Framerate to 30 FPS
-            Application.targetFrameRate = 30;
-
-            //Center the model and init grid
+            //Center the 3D model and init grid
             transform.position = Vector3.zero;
-            var inputModelSize = GetComponent<MeshCollider>().bounds.size;
 
 
             var gridPrefab = Resources.Load("Prefabs/Grid");
             var gridObj = Instantiate(gridPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-            var grid = gridObj.GetComponent<Grid>();
-            //grid.Init2(inputModelSize.y, 200f);
+            grid = gridObj.GetComponent<Grid>();
             grid.Init(this.gameObject, 5f);
         }
-        
-        // void Update () {}
+
+
+        private void Update() {
+            if (Input.GetKeyDown("b")) {
+                model = new DiscreteModel(grid.GridMatrix, new Vector3(20, 20, 20));
+            }
+            if (Input.GetKeyDown("space")) {
+                while (!model.GenerationFinished) {
+                    model.Observe();
+                }
+            }
+        }
 
         void OnDrawGizmos () {
             if (voxels == null) return;
