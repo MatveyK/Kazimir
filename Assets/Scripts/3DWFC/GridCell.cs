@@ -8,7 +8,6 @@ public class GridCell : MonoBehaviour {
 	List<GameObject> containedVoxels;
 
 	Bounds bounds;
-	BoxCollider boxCollider;
 
 	void Start () {
 	}
@@ -21,20 +20,20 @@ public class GridCell : MonoBehaviour {
 		bounds = new Bounds (center, new Vector3(size, size, size));
 
 	    //Contained Voxels
-		containedVoxels = new List<GameObject> ();
-
-		//Init the Trigger
-		boxCollider = this.gameObject.GetComponent<BoxCollider>();
-		boxCollider.size = new Vector3 (size, size, size);
-		boxCollider.center = Vector3.zero;
+	    containedVoxels = collectVoxels();
 	}
 
-	void OnTriggerEnter(Collider other) {
-	    if (!containedVoxels.Contains(other.gameObject)) {
-	        other.gameObject.transform.parent = transform;
-    		containedVoxels.Add (other.gameObject);
-	    }
-	}
+
+    private List<GameObject> collectVoxels() {
+        var res = new List<GameObject>();
+        foreach (var voxel in GameObject.FindGameObjectsWithTag("Voxel")) {
+            if (bounds.Contains(voxel.transform.position)) {
+                voxel.transform.parent = transform;
+                res.Add(voxel);
+            }
+        }
+        return res;
+    }
 
 
     public List<GameObject> ContainedVoxels {

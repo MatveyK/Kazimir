@@ -5,12 +5,16 @@ public class Grid : MonoBehaviour {
 
     private GridCell[,,] gridMatrix;
 
+    private float gridCellSize;
+
 
     private void Start () {
     }
 
     //Initialise the grid GameObject
     public void Init(GameObject model, float gridCellSize) {
+
+        this.gridCellSize = gridCellSize;
 
         //Init the Prefab
         var gridCellPrefab = Resources.Load("Prefabs/GridCell");
@@ -50,6 +54,29 @@ public class Grid : MonoBehaviour {
         Debug.Log("TOTAL CELLS: " + gridMatrix.Length);
     }
 
+    public void InitOutputGrid(int[,,] modelOutput, Grid inputGrid) {
+
+        var gridCellSize = inputGrid.GridCellSize;
+
+        for (var x = 0; x < modelOutput.GetLength(0); x++) {
+            for (var y = 0; y < modelOutput.GetLength(1); y++) {
+                for (var z = 0; z < modelOutput.GetLength(2); z++) {
+
+                    //Find the GridCell GameObject using the id provided by the model output.
+                    foreach (var gridCell in inputGrid.GridMatrix) {
+                        if (gridCell.Id == modelOutput[x, y, z]) {
+                            var position = new Vector3(x * gridCellSize + gridCellSize / 2,
+                                y * gridCellSize + gridCellSize / 2,
+                                z * gridCellSize + gridCellSize / 2);
+                            var gCell = Instantiate(gridCell, position, Quaternion.identity);
+                            gCell.transform.parent = transform;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     private static Vector3 FindMaxVectorPos(GameObject model) {
         var sizeVec = Vector3.zero;
@@ -85,5 +112,9 @@ public class Grid : MonoBehaviour {
 
     public GridCell[,,] GridMatrix {
         get { return gridMatrix; }
+    }
+
+    public float GridCellSize {
+        get { return gridCellSize; }
     }
 }

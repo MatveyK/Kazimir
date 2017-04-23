@@ -11,6 +11,7 @@ namespace mattatz.VoxelSystem {
         List<Voxel> voxels;
 
         private Grid grid;
+        private GameObject gridObj;
         private DiscreteModel model;
 
         private void Start () {
@@ -22,6 +23,8 @@ namespace mattatz.VoxelSystem {
                 cube.transform.localPosition = voxel.position;
                 cube.transform.localScale = voxel.size * Vector3.one;
                 cube.transform.localRotation = Quaternion.identity;
+
+                cube.tag = "Voxel";
 
                 var boxCollider = cube.AddComponent<BoxCollider>();
                 boxCollider.center = Vector3.zero;
@@ -39,7 +42,7 @@ namespace mattatz.VoxelSystem {
 
 
             var gridPrefab = Resources.Load("Prefabs/Grid");
-            var gridObj = Instantiate(gridPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+            gridObj = Instantiate(gridPrefab, Vector3.zero, Quaternion.identity) as GameObject;
             grid = gridObj.GetComponent<Grid>();
             grid.Init(this.gameObject, 5f);
         }
@@ -47,12 +50,21 @@ namespace mattatz.VoxelSystem {
 
         private void Update() {
             if (Input.GetKeyDown("b")) {
-                model = new DiscreteModel(grid.GridMatrix, new Vector3(20, 20, 20));
+                model = new DiscreteModel(grid.GridMatrix, new Vector3(6, 6, 6));
             }
             if (Input.GetKeyDown("space")) {
                 while (!model.GenerationFinished) {
                     model.Observe();
                 }
+            }
+            if (Input.GetKeyDown("v")) {
+                var gridPrefab = Resources.Load("Prefabs/Grid");
+                var resultGridObj = Instantiate(gridPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                Grid resultGrid = resultGridObj.GetComponent<Grid>();
+                resultGrid.InitOutputGrid(model.GetOutput(), grid);
+
+                //Disable the input grid.
+                gridObj.SetActive(false);
             }
         }
 
