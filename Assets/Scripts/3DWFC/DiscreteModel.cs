@@ -3,14 +3,19 @@ using System.Linq;
 using UnityEngine;
 using Random = System.Random;
 
-public class DiscreteModel {
+public class DiscreteModel
+{
 
     private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
 
     private bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
 
-    //All the possible directions.
+    private bool generationFinished = false;
+    private bool contradiction = false;
+    private int numGen;
+
+//All the possible directions.
     public readonly Coord3D[] Directions = new Coord3D[6]
         {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
 
@@ -20,6 +25,7 @@ public class DiscreteModel {
     public DiscreteModel(GridCell[,,] inputMatrix, Vector3 outputSize) {
         mapOfChanges = new bool[(int) outputSize.x, (int) outputSize.y, (int) outputSize.z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
+        numGen = 0;
 
         //MergeDoubleCells(inputMatrix);
 
@@ -143,7 +149,8 @@ public class DiscreteModel {
 
         Propagate(nodeCoords.x, nodeCoords.y, nodeCoords.z);
 
-        Debug.Log("FINISHED!");
+        Debug.Log("Generation: " + numGen);
+        numGen++;
     }
 
     private void Propagate(int x, int y, int z) {
@@ -179,12 +186,21 @@ public class DiscreteModel {
                     outputMatrix[current.x + direction.x, current.y + direction.y, current.z + direction.z]
                         .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
 
+                    //Check for contradictions
+                    // TODO Add a backtrack recovery system to remedy the contradictions.
+                    if (outputMatrix[current.x + direction.x, current.y + direction.y, current.z + direction.z].Count == 0) {
+                        contradiction = true;
+                        break;
+                    }
+
                     //Queue it up in order to spread the info to its neighbours and mark it as visited.
                     nodesToVisit.Enqueue(current.Add(direction));
                     mapOfChanges.SetValue(true, current.x + direction.x, current.y + direction.y, current.z + direction.z);
                 }
             }
         }
+
+        generationFinished = CheckIfFinished();
     }
 
     private List<Coord3D> GetCollapsableNodes() {
@@ -201,9 +217,21 @@ public class DiscreteModel {
         return collapsableNodes;
     }
 
+    private bool CheckIfFinished() {
+        return outputMatrix.Cast<List<int>>().All(node => node.Count == 1);
+    }
+
 
 
     public Dictionary<int, Dictionary<Coord3D, List<int>>> NeighboursMap {
         get { return neighboursMap; }
+    }
+
+    public bool GenerationFinished {
+        get { return generationFinished; }
+    }
+
+    public bool Contradiction {
+        get { return contradiction; }
     }
 }

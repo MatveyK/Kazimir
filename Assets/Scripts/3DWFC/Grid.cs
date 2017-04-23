@@ -57,17 +57,18 @@ public class Grid : MonoBehaviour {
 
         //Determine the number of batches
         nbBatches = cells.Length/ BatchSize;
-
     }
 
     public DiscreteModel model;
 
     private void Update() {
         if (Input.GetKeyDown("b")) {
-            model = new DiscreteModel(cells, new Vector3(2, 2, 2));
+            model = new DiscreteModel(cells, new Vector3(20, 20, 20));
         }
         if (Input.GetKeyDown("space")) {
-            model.Observe();
+            while (!model.GenerationFinished) {
+                model.Observe();
+            }
         }
     }
 
