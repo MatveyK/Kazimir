@@ -50,7 +50,7 @@ namespace mattatz.VoxelSystem {
 
         private void Update() {
             if (Input.GetKeyDown("b")) {
-                model = new DiscreteModel(grid.GridMatrix, new Vector3(6, 6, 6));
+                model = new DiscreteModel(grid.GridMatrix, new Vector3(10, 10, 10));
             }
             if (Input.GetKeyDown("space")) {
                 while (!model.GenerationFinished) {
