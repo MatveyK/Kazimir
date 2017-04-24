@@ -14,6 +14,8 @@ namespace mattatz.VoxelSystem {
         private GameObject gridObj;
         private DiscreteModel model;
 
+        [SerializeField] Vector3 outputSize = new Vector3(6, 6, 6);
+
         private void Start () {
             var filter = GetComponent<MeshFilter>();
             voxels = Voxelizer.Voxelize(filter.mesh, count);
@@ -50,7 +52,7 @@ namespace mattatz.VoxelSystem {
 
         private void Update() {
             if (Input.GetKeyDown("b")) {
-                model = new DiscreteModel(grid.GridMatrix, new Vector3(10, 10, 10));
+                model = new DiscreteModel(grid.GridMatrix, outputSize);
             }
             if (Input.GetKeyDown("space")) {
                 while (!model.GenerationFinished) {
