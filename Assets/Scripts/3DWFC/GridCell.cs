@@ -9,12 +9,15 @@ public class GridCell : MonoBehaviour {
 
 	Bounds bounds;
 
+    float size;
+
 	void Start () {
 	}
 
 	public void Init(Vector3 center, float size) {
 	    //Transform
 	    this.transform.position = center;
+	    this.size = size;
 
 	    //Bounds
 		bounds = new Bounds (center, new Vector3(size, size, size));
@@ -41,4 +44,9 @@ public class GridCell : MonoBehaviour {
 			return containedVoxels;
 		}
 	}
+
+    private void OnDrawGizmos() {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(transform.position, new Vector3(size, size, size));
+    }
 }
