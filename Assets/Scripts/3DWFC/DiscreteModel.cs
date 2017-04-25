@@ -15,7 +15,7 @@ public class DiscreteModel
     private bool contradiction = false;
     private int numGen;
 
-//All the possible directions.
+    //All the possible directions.
     public readonly Coord3D[] Directions = new Coord3D[6]
         {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
 
@@ -30,6 +30,8 @@ public class DiscreteModel
         //MergeDoubleCells(inputMatrix);
 
         AssignIdsToCells(inputMatrix);
+        MergeCells(inputMatrix);
+
         InitNeighboursMap(inputMatrix);
 
         InitOutputMatrix(outputSize, inputMatrix);
@@ -95,15 +97,17 @@ public class DiscreteModel
         }
     }
 
-    private void MergeDoubleCells(GridCell[,,] inputMatrix) {
-        int same = 0;
+    private static void MergeCells(GridCell[,,] inputMatrix) {
         foreach (var gridCell in inputMatrix) {
             foreach (var otherGridCell in inputMatrix) {
-                if (CompareCells(gridCell, otherGridCell)) same++;
+                if (CompareCells(gridCell, otherGridCell)) {
+                    otherGridCell.Id = gridCell.Id;
+                }
             }
         }
-        Debug.Log("SAME CELLS: " + same);
-        Debug.Log(Vector3.SqrMagnitude(new Vector3(2.45f, 2.97f, -1.5f) - new Vector3(1.70f, 2.97f, -1.5f)));
+
+        var test = inputMatrix.Cast<GridCell>().ToList();
+        Debug.Log("DISTINCT CELLS: " + test.DistinctBy(x => x.Id).ToList().Count);
     }
 
     private static bool CompareCells(GridCell firstCell, GridCell secondCell) {
@@ -114,13 +118,12 @@ public class DiscreteModel
 
         //Then check if the positions of each two voxels in the cell match to a certain
         //threshold.
-        var sameVoxels = (from voxel in firstCell.ContainedVoxels
+        var sameVoxels = from voxel in firstCell.ContainedVoxels
             from otherVoxel in secondCell.ContainedVoxels
             where Vector3.SqrMagnitude(voxel.transform.localPosition - otherVoxel.transform.localPosition) < 0.6f
-            select voxel)
-            .Count();
+            select voxel;
 
-        return sameVoxels == firstCell.ContainedVoxels.Count;
+        return sameVoxels.Count() == firstCell.ContainedVoxels.Count;
     }
 
     private void ReInitMapOfChanges() {
