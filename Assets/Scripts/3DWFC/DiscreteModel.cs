@@ -19,6 +19,10 @@ public class DiscreteModel
     public readonly Coord3D[] Directions = new Coord3D[6]
         {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
 
+    //Save these fields in case of reintialisation
+    private Vector3 outputSize;
+    private GridCell[,,] inputMatrix;
+
     private static readonly Random rnd = new Random();
 
 
@@ -35,6 +39,9 @@ public class DiscreteModel
         InitNeighboursMap(inputMatrix);
 
         InitOutputMatrix(outputSize, inputMatrix);
+
+        this.outputSize = outputSize;
+        this.inputMatrix = inputMatrix;
 
         Debug.Log("Model Ready!");
     }
@@ -222,6 +229,13 @@ public class DiscreteModel
 
     private bool CheckIfFinished() {
         return outputMatrix.Cast<List<int>>().All(node => node.Count == 1);
+    }
+
+    public void Clear() {
+        InitOutputMatrix(outputSize, inputMatrix);
+        contradiction = false;
+        generationFinished = false;
+        numGen = 0;
     }
 
     public int[,,] GetOutput() {

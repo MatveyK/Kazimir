@@ -57,6 +57,11 @@ namespace mattatz.VoxelSystem {
             if (Input.GetKeyDown("space")) {
                 while (!model.GenerationFinished) {
                     model.Observe();
+
+                    if (model.Contradiction) {
+                        Debug.Log("Generation Failed!");
+                        model.Clear();
+                    }
                 }
             }
             if (Input.GetKeyDown("v")) {
