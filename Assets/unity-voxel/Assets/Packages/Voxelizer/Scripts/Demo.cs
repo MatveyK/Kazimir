@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -19,23 +20,17 @@ namespace mattatz.VoxelSystem {
         private void Start () {
             var filter = GetComponent<MeshFilter>();
             voxels = Voxelizer.Voxelize(filter.mesh, count);
+
+            //Load the voxel prefab
+            var voxelCube = Resources.Load("Prefabs/Cube");
             voxels.ForEach(voxel => {
-                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                var cube = Instantiate(voxelCube) as GameObject;
                 cube.transform.parent = transform;
                 cube.transform.localPosition = voxel.position;
                 cube.transform.localScale = voxel.size * Vector3.one;
                 cube.transform.localRotation = Quaternion.identity;
 
                 cube.tag = "Voxel";
-
-                var boxCollider = cube.AddComponent<BoxCollider>();
-                boxCollider.center = Vector3.zero;
-                boxCollider.size = Vector3.one;
-                var rigidBody = cube.AddComponent<Rigidbody>();
-                rigidBody.useGravity = false;
-                rigidBody.isKinematic = true;
-                rigidBody.mass = 0f;
-                rigidBody.angularDrag = 0f;
             });
 			Debug.Log ("TOTAL CUBES: " + voxels.Count);
 
