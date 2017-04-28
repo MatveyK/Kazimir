@@ -9,6 +9,8 @@ namespace mattatz.VoxelSystem {
     public class Demo : MonoBehaviour {
 
         [SerializeField] int count = 10;
+        [SerializeField] private bool optimise = false;
+
         List<Voxel> voxels;
 
         private Grid grid;
@@ -63,7 +65,7 @@ namespace mattatz.VoxelSystem {
                 var gridPrefab = Resources.Load("Prefabs/Grid");
                 var resultGridObj = Instantiate(gridPrefab, Vector3.zero, Quaternion.identity) as GameObject;
                 Grid resultGrid = resultGridObj.GetComponent<Grid>();
-                resultGrid.InitOutputGrid(model.GetOutput(), grid);
+                resultGrid.InitOutputGrid(model.GetOutput(), grid, optimise);
 
                 //Disable the input grid.
                 gridObj.SetActive(false);
