@@ -1,7 +1,5 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
 namespace mattatz.VoxelSystem {
 
@@ -56,10 +54,11 @@ namespace mattatz.VoxelSystem {
                     model.Observe();
 
                     if (model.Contradiction) {
-                        Debug.Log("Generation Failed!");
+                        Debug.Log($"Generation Failed after {model.NumGen} iterations!");
                         model.Clear();
                     }
                 }
+                Debug.Log($"Generation finished after {model.NumGen} iterations!");
             }
             if (Input.GetKeyDown("v")) {
                 var gridPrefab = Resources.Load("Prefabs/Grid");

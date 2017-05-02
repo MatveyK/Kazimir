@@ -159,7 +159,6 @@ public class DiscreteModel
 
         Propagate(nodeCoords.x, nodeCoords.y, nodeCoords.z);
 
-        Debug.Log("Generation: " + numGen);
         numGen++;
     }
 
@@ -252,15 +251,11 @@ public class DiscreteModel
 
 
 
-    public Dictionary<int, Dictionary<Coord3D, List<int>>> NeighboursMap {
-        get { return neighboursMap; }
-    }
+    public Dictionary<int, Dictionary<Coord3D, List<int>>> NeighboursMap => neighboursMap;
 
-    public bool GenerationFinished {
-        get { return generationFinished; }
-    }
+    public bool GenerationFinished => generationFinished;
 
-    public bool Contradiction {
-        get { return contradiction; }
-    }
+    public bool Contradiction => contradiction;
+
+    public int NumGen => numGen;
 }

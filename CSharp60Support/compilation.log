@@ -1,0 +1,226 @@
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:43:42                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Microsoft C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/Roslyn/csc.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.Xml.dll" @Temp/UnityTempFile-64acfb652ecc84cebb0933dd1a24908c -debug-
+Exit code: 0
+Elapsed time: 3.46 sec
+
+- Compiler output (0 lines):
+
+- Compiler errors (1 line):
+0: Assets/Scripts/3DWFC/Grid.cs(129,13): warning CS0219: The variable 'insideIndex' is assigned but its value is never used
+
+PDB to MDB conversion skipped
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:43:46                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp-Editor.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Microsoft C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/Roslyn/csc.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Xml.dll" @Temp/UnityTempFile-d9b530cebea1f4d2e85f5f98154a8a9e -debug-
+Exit code: 0
+Elapsed time: 1.72 sec
+
+- Compiler output (0 lines):
+
+- Compiler errors (0 lines):
+
+PDB to MDB conversion skipped
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:44:13                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Microsoft C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/Roslyn/csc.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.Xml.dll" @Temp/UnityTempFile-0b71be5b09ac94594a9572c372e0cdcc -debug-
+Exit code: 0
+Elapsed time: 3.26 sec
+
+- Compiler output (0 lines):
+
+- Compiler errors (1 line):
+0: Assets/Scripts/3DWFC/Grid.cs(129,13): warning CS0219: The variable 'insideIndex' is assigned but its value is never used
+
+PDB to MDB conversion skipped
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:44:13                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp-Editor-firstpass.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Microsoft C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/Roslyn/csc.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Xml.dll" @Temp/UnityTempFile-f891b7377cc2d4124ba9e796c60fa1ad -debug-
+Exit code: 0
+Elapsed time: 2.25 sec
+
+- Compiler output (0 lines):
+
+- Compiler errors (0 lines):
+
+PDB to MDB conversion skipped
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:44:18                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp-Editor.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Microsoft C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/Roslyn/csc.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Xml.dll" @Temp/UnityTempFile-2d06e18d07341415b9bef7a473252cef -debug-
+Exit code: 0
+Elapsed time: 1.75 sec
+
+- Compiler output (0 lines):
+
+- Compiler errors (0 lines):
+
+PDB to MDB conversion skipped
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:48:27                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp-Editor-firstpass.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Mono C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/mcs.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Xml.dll" @Temp/UnityTempFile-61967ace7be074399955d8859f583b02
+Exit code: 0
+Elapsed time: 1.53 sec
+
+- Compiler output (0 lines):
+
+- Compiler errors (0 lines):
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:48:27                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Mono C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/mcs.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.Xml.dll" @Temp/UnityTempFile-a66668b88c0574ed6a3b3f5c9e9d9bb5
+Exit code: 0
+Elapsed time: 1.48 sec
+
+- Compiler output (1 line):
+0: Compilation succeeded - 1 warning(s)
+
+- Compiler errors (1 line):
+0: Assets/Scripts/3DWFC/Grid.cs(129,13): warning CS0219: The variable `insideIndex' is assigned but its value is never used
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:48:29                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp-Editor.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Mono C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/mcs.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Xml.dll" @Temp/UnityTempFile-4418504a722f046b689254ac30b9e140
+Exit code: 0
+Elapsed time: 0.61 sec
+
+- Compiler output (0 lines):
+
+- Compiler errors (0 lines):
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:51:52                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Mono C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/mcs.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/Mono/lib/mono/unity/System.Xml.dll" @Temp/UnityTempFile-e7bc5129ac14848a2825c52580fbe4e7
+Exit code: 0
+Elapsed time: 1.38 sec
+
+- Compiler output (1 line):
+0: Compilation succeeded - 1 warning(s)
+
+- Compiler errors (1 line):
+0: Assets/Scripts/3DWFC/Grid.cs(129,13): warning CS0219: The variable `insideIndex' is assigned but its value is never used
+********************************************************************************
+*                        Tuesday, 02 May 2017 12:51:54                         *
+********************************************************************************
+CSharpCompilerWrapper.exe version: 2.0.3.30
+Platform: Mac
+Target assembly: Assembly-CSharp-Editor.dll
+Project directory: /Users/madv/Documents/3DSynthesis
+Target profile directory: /Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api
+Unity 'Data' or 'Frameworks' directory: /Applications/Unity5.6/Unity.app/Contents
+Compiler: Mono C# 6.0
+
+- Compilation -----------------------------------------------
+
+Process: /usr/local/bin/mono
+Arguments: "/Users/madv/Documents/3DSynthesis/CSharp60Support/mcs.exe" -nostdlib+ -noconfig -nologo -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/mscorlib.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Core.dll" -r:"/Applications/Unity5.6/Unity.app/Contents/MonoBleedingEdge/lib/mono/2.0-api/System.Xml.dll" @Temp/UnityTempFile-25e340b2521af42ad940b0ce8576c368
+Exit code: 0
+Elapsed time: 0.74 sec
+
+- Compiler output (0 lines):
+
+- Compiler errors (0 lines):
