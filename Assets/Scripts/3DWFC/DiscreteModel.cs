@@ -114,7 +114,7 @@ public class DiscreteModel
         }
 
         var test = inputMatrix.Cast<GridCell>().ToList();
-        Debug.Log("DISTINCT CELLS: " + test.DistinctBy(x => x.Id).ToList().Count);
+        Debug.Log($"DISTINCT CELLS: {test.DistinctBy(x => x.Id).ToList().Count}");
     }
 
     private static bool CompareCells(GridCell firstCell, GridCell secondCell) {

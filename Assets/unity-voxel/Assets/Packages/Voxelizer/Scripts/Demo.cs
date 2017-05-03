@@ -15,6 +15,7 @@ namespace mattatz.VoxelSystem {
         private GameObject gridObj;
         private DiscreteModel model;
 
+        [SerializeField] private float gridCellSize = 5f;
         [SerializeField] Vector3 outputSize = new Vector3(6, 6, 6);
 
         private void Start () {
@@ -41,7 +42,7 @@ namespace mattatz.VoxelSystem {
             var gridPrefab = Resources.Load("Prefabs/Grid");
             gridObj = Instantiate(gridPrefab, Vector3.zero, Quaternion.identity) as GameObject;
             grid = gridObj.GetComponent<Grid>();
-            grid.Init(this.gameObject, 5f);
+            grid.Init(this.gameObject, gridCellSize);
         }
 
 

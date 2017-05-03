@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class Grid : MonoBehaviour {
@@ -25,6 +24,7 @@ public class Grid : MonoBehaviour {
 
         //Get the model size (represented as a vector in 3D) using its mesh collider
         var modelSize = FindMaxVectorPos(model);
+        Debug.Log(modelSize);
 
         //Init the data matrix
         InitGridMatrix(modelSize, gridCellSize);
@@ -119,14 +119,13 @@ public class Grid : MonoBehaviour {
         }
     }
 
-    private List<List<MeshFilter>> OrganiseMeshes(MeshFilter[] meshFilters) {
+    private static List<List<MeshFilter>> OrganiseMeshes(MeshFilter[] meshFilters) {
         var res = new List<List<MeshFilter>>();
         var verticesSoFar = 0;
 
         var index = 0;
         res.Add(new List<MeshFilter>());
         var currList = res[index];
-        var insideIndex = 0;
         for (var i = 0; i < meshFilters.Length; i++) {
             if (verticesSoFar + meshFilters[i].mesh.vertexCount > vertexLimit) {
                 index++;
