@@ -3,10 +3,10 @@ using System.Linq;
 using UnityEngine;
 using Random = System.Random;
 
-public class DiscreteModel
-{
+public class DiscreteModel {
 
     private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
+    private readonly Dictionary<int, float> probabilites;
 
     private bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
@@ -31,10 +31,9 @@ public class DiscreteModel
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         numGen = 0;
 
-        //MergeDoubleCells(inputMatrix);
-
         AssignIdsToCells(inputMatrix);
         MergeCells(inputMatrix);
+        probabilites = CalcProbs(inputMatrix);
 
         InitNeighboursMap(inputMatrix);
 
@@ -115,6 +114,15 @@ public class DiscreteModel
 
         var gridCellList = inputMatrix.Cast<GridCell>().ToList();
         Debug.Log($"DISTINCT CELLS: {gridCellList.DistinctBy(x => x.Id).ToList().Count}");
+    }
+
+    private static Dictionary<int, float> CalcProbs(GridCell[,,] inputMatrix) {
+        var probs = inputMatrix.Cast<GridCell>()
+            .ToList()
+            .GroupBy(cell => cell.Id)
+            .ToDictionary(group => group.Key, group => (float) group.Count() / (float) inputMatrix.Length);
+
+        return probs;
     }
 
     private static bool CompareCells(GridCell firstCell, GridCell secondCell) {
