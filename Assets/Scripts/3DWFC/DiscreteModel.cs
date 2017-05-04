@@ -20,10 +20,10 @@ public class DiscreteModel
         {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
 
     //Save these fields in case of reintialisation
-    private Vector3 outputSize;
-    private GridCell[,,] inputMatrix;
+    private readonly Vector3 outputSize;
+    private readonly GridCell[,,] inputMatrix;
 
-    private static readonly Random rnd = new Random();
+    private static readonly Random Rnd = new Random();
 
 
     public DiscreteModel(GridCell[,,] inputMatrix, Vector3 outputSize) {
@@ -113,8 +113,8 @@ public class DiscreteModel
             }
         }
 
-        var test = inputMatrix.Cast<GridCell>().ToList();
-        Debug.Log($"DISTINCT CELLS: {test.DistinctBy(x => x.Id).ToList().Count}");
+        var gridCellList = inputMatrix.Cast<GridCell>().ToList();
+        Debug.Log($"DISTINCT CELLS: {gridCellList.DistinctBy(x => x.Id).ToList().Count}");
     }
 
     private static bool CompareCells(GridCell firstCell, GridCell secondCell) {
@@ -151,11 +151,11 @@ public class DiscreteModel
         var collapsableNodes = GetCollapsableNodes();
 
         //Pick a random node from the collapsible nodes.
-        var nodeCoords = collapsableNodes[rnd.Next(collapsableNodes.Count)];
+        var nodeCoords = collapsableNodes[Rnd.Next(collapsableNodes.Count)];
         var node = outputMatrix[nodeCoords.x, nodeCoords.y, nodeCoords.z];
 
         //Collapse it to a random definite state.
-        outputMatrix.SetValue(new List<int>() { node[rnd.Next(node.Count)] }, nodeCoords.x, nodeCoords.y, nodeCoords.z);
+        outputMatrix.SetValue(new List<int>() { node[Rnd.Next(node.Count)] }, nodeCoords.x, nodeCoords.y, nodeCoords.z);
 
         Propagate(nodeCoords.x, nodeCoords.y, nodeCoords.z);
 

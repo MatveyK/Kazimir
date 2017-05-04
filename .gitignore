@@ -38,3 +38,6 @@ sysinfo.txt
 
 # Mac Annoyingness
 .DS_Store
+
+# Remove the Mono compilation log
+*.log
