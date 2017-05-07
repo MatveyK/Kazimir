@@ -6,7 +6,7 @@ using Random = System.Random;
 public class DiscreteModel {
 
     private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
-    private readonly Dictionary<int, float> probabilites;
+    private readonly Dictionary<int, double> probabilites;
 
     private bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
@@ -14,6 +14,8 @@ public class DiscreteModel {
     private bool generationFinished = false;
     private bool contradiction = false;
     private int numGen;
+
+    private bool probabilisticModel = true;
 
     //All the possible directions.
     public readonly Coord3D[] Directions = new Coord3D[6]
@@ -26,7 +28,7 @@ public class DiscreteModel {
     private static readonly Random Rnd = new Random();
 
 
-    public DiscreteModel(GridCell[,,] inputMatrix, Vector3 outputSize) {
+    public DiscreteModel(GridCell[,,] inputMatrix, Vector3 outputSize, bool probabilisticModel = true) {
         mapOfChanges = new bool[(int) outputSize.x, (int) outputSize.y, (int) outputSize.z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         numGen = 0;
@@ -116,11 +118,11 @@ public class DiscreteModel {
         Debug.Log($"DISTINCT CELLS: {gridCellList.DistinctBy(x => x.Id).ToList().Count}");
     }
 
-    private static Dictionary<int, float> CalcProbs(GridCell[,,] inputMatrix) {
+    private static Dictionary<int, double> CalcProbs(GridCell[,,] inputMatrix) {
         var probs = inputMatrix.Cast<GridCell>()
             .ToList()
             .GroupBy(cell => cell.Id)
-            .ToDictionary(group => group.Key, group => (float) group.Count() / (float) inputMatrix.Length);
+            .ToDictionary(group => group.Key, group => (double) group.Count() / (double) inputMatrix.Length);
 
         return probs;
     }
@@ -160,10 +162,33 @@ public class DiscreteModel {
 
         //Pick a random node from the collapsible nodes.
         var nodeCoords = collapsableNodes[Rnd.Next(collapsableNodes.Count)];
-        var node = outputMatrix[nodeCoords.x, nodeCoords.y, nodeCoords.z];
+        var availableNodeStates = outputMatrix[nodeCoords.x, nodeCoords.y, nodeCoords.z];
 
-        //Collapse it to a random definite state.
-        outputMatrix.SetValue(new List<int>() { node[Rnd.Next(node.Count)] }, nodeCoords.x, nodeCoords.y, nodeCoords.z);
+        if (probabilisticModel) {
+
+            //Eliminate all duplicates from the list of possible states.
+            availableNodeStates = availableNodeStates.Distinct().ToList();
+
+            //Choose a state according to the probability distribution of the states in the input model.
+            double runningTotal = 0;
+            var totalProb = probabilites.Select(x => x)
+                .Where(x => availableNodeStates.Contains(x.Key))
+                .Sum(x => x.Value);
+            var rndNumb = Rnd.NextDouble() * totalProb;
+            foreach (var availableNodeState in availableNodeStates) {
+                runningTotal += probabilites[availableNodeState];
+                if (runningTotal > rndNumb) {
+                    outputMatrix.SetValue(new List<int>() {availableNodeState}, nodeCoords.x, nodeCoords.y,
+                        nodeCoords.z);
+                    break;
+                }
+            }
+        }
+        else {
+            //Collapse it to a random definite state.
+            outputMatrix.SetValue(new List<int>() { availableNodeStates[Rnd.Next(availableNodeStates.Count)] }, nodeCoords.x, nodeCoords.y, nodeCoords.z);
+        }
+
 
         Propagate(nodeCoords.x, nodeCoords.y, nodeCoords.z);
 
@@ -254,7 +279,15 @@ public class DiscreteModel {
                 }
             }
         }
+        DisplayOutputStats(outputMatrix);
         return res;
+    }
+
+    private void DisplayOutputStats(List<int>[,,] matrix) {
+        var stats = matrix.Cast<List<int>>()
+            .ToList()
+            .GroupBy(state => state.First())
+            .ToDictionary(group => group.Key, group => (float) group.Count() / (float) outputMatrix.Length);
     }
 
 
