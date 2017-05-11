@@ -6,7 +6,7 @@ public class Grid : MonoBehaviour {
 
     private GridCell[,,] gridMatrix;
 
-    private float gridCellSize;
+    private double gridCellSize;
 
     private const float vertexLimit = 65500;
 
@@ -15,16 +15,20 @@ public class Grid : MonoBehaviour {
     }
 
     //Initialise the grid GameObject
-    public void Init(GameObject model, float gridCellSize) {
+    public void Init(GameObject model, double gridCellSize) {
 
         this.gridCellSize = gridCellSize;
 
         //Init the Prefab
         var gridCellPrefab = Resources.Load("Prefabs/GridCell");
 
-        //Get the model size (represented as a vector in 3D) using its mesh collider
-        var modelSize = FindMaxVectorPos(model);
-        Debug.Log(modelSize);
+        //Get the model size (represented as a vector in 3D) using a homebrew method.
+        //var modelSize = FindMaxVectorPos(model);
+
+        //Get the model siye using the model's mesh collider.
+        var modelMesh = model.GetComponent<MeshCollider>();
+        var modelSize = modelMesh.bounds.extents;
+        Debug.Log($"Model size: {modelSize}");
 
         //Init the data matrix
         InitGridMatrix(modelSize, gridCellSize);
@@ -33,16 +37,16 @@ public class Grid : MonoBehaviour {
         var zi = 0;
 
         //Init GameObject matrix
-        for (var x = -modelSize.x; x < modelSize.x; x += gridCellSize) {
-            for (float y = 0; y < modelSize.y; y += gridCellSize) {
-                for (var z = -modelSize.z; z < modelSize.z; z += gridCellSize) {
+        for (var x = (double) -modelSize.x; x < (double) modelSize.x; x += gridCellSize) {
+            for (double y = (double) 0; y < (double) modelSize.y * 2; y += gridCellSize) {
+                for (var z = (double) -modelSize.z; z < (double) modelSize.z; z += gridCellSize) {
                     var gridCellObj = Instantiate(gridCellPrefab) as GameObject;
                     var gCell = gridCellObj.GetComponent<GridCell>();
 
                     gridCellObj.transform.parent = transform;
 
-                    var initPoint = new Vector3(x + gridCellSize / 2, y + gridCellSize / 2, z + gridCellSize / 2);
-                    gCell.Init(initPoint, gridCellSize);
+                    var initPoint = new Vector3((float) (x + gridCellSize / 4), (float) (y + gridCellSize / 2), (float) (z + gridCellSize / 4));
+                    gCell.Init(initPoint, (float) gridCellSize);
 
                     //Add cell to the data struct
                     gridMatrix[xi, yi, zi] = gCell;
@@ -69,9 +73,9 @@ public class Grid : MonoBehaviour {
                     //Find the GridCell GameObject using the id provided by the model output.
                     foreach (var gridCell in inputGrid.GridMatrix) {
                         if (gridCell.Id == modelOutput[x, y, z]) {
-                            var position = new Vector3(x * gridCellSize + gridCellSize / 2,
-                                y * gridCellSize + gridCellSize / 2,
-                                z * gridCellSize + gridCellSize / 2);
+                            var position = new Vector3((float) (x * gridCellSize + gridCellSize / 2),
+                                (float) (y * gridCellSize + gridCellSize / 2),
+                                (float) (z * gridCellSize + gridCellSize / 2));
                             var gCell = Instantiate(gridCell, position, Quaternion.identity);
                             gCell.transform.parent = transform;
                         }
@@ -165,19 +169,15 @@ public class Grid : MonoBehaviour {
         return sizeVec;
     }
 
-    private void InitGridMatrix(Vector3 modelSize, float gridCellSize) {
-        var cellsPerDimX = (int) (modelSize.x * 2 / gridCellSize) + 1;
+    private void InitGridMatrix(Vector3 modelSize, double gridCellSize) {
+        var cellsPerDimX = (int) ((double) modelSize.x * 2 / gridCellSize) + 1;
         //Do not multiply y by two since we start y at zero coordinate.
-        var cellsPerDimY = (int) (modelSize.y / gridCellSize) + 1;
-        var cellsPerDimZ = (int) (modelSize.z * 2 / gridCellSize) + 1;
+        var cellsPerDimY = (int) ((double) modelSize.y * 2 / gridCellSize) + 1;
+        var cellsPerDimZ = (int) ((double) modelSize.z * 2 / gridCellSize) + 1;
         gridMatrix = new GridCell[cellsPerDimX, cellsPerDimY, cellsPerDimZ];
     }
 
-    public GridCell[,,] GridMatrix {
-        get { return gridMatrix; }
-    }
+    public GridCell[,,] GridMatrix => gridMatrix;
 
-    public float GridCellSize {
-        get { return gridCellSize; }
-    }
+    public double GridCellSize => gridCellSize;
 }
