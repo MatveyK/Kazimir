@@ -33,6 +33,9 @@ public class DiscreteModel {
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         numGen = 0;
 
+        this.outputSize = outputSize;
+        this.inputMatrix = inputMatrix;
+
         AssignIdsToCells(inputMatrix);
         MergeCells(inputMatrix);
         probabilites = CalcProbs(inputMatrix);
@@ -40,9 +43,6 @@ public class DiscreteModel {
         InitNeighboursMap(inputMatrix);
 
         InitOutputMatrix(outputSize, inputMatrix);
-
-        this.outputSize = outputSize;
-        this.inputMatrix = inputMatrix;
 
         Debug.Log("Model Ready!");
     }
@@ -66,7 +66,7 @@ public class DiscreteModel {
                 neighboursMap[gridCell.Id][direction] = new List<int>();
 
                 //Add self for testing purposes TODO REMOVE this
-                neighboursMap[gridCell.Id][direction].Add(gridCell.Id);
+                //neighboursMap[gridCell.Id][direction].Add(gridCell.Id);
             }
         }
 
@@ -224,7 +224,7 @@ public class DiscreteModel {
                     !outputMatrix.OutOfBounds(current.Add(direction))) {
 
                     //Eliminate neighbours that are not allowed from the output matrix
-                    var allowedNghbrsInDirection = allowedNghbrs[direction];
+                    var allowedNghbrsInDirection = allowedNghbrs[direction].Distinct().ToList();
                     outputMatrix[current.x + direction.x, current.y + direction.y, current.z + direction.z]
                         .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
 
@@ -232,7 +232,7 @@ public class DiscreteModel {
                     // TODO Add a backtrack recovery system to remedy the contradictions.
                     if (outputMatrix[current.x + direction.x, current.y + direction.y, current.z + direction.z].Count == 0) {
                         contradiction = true;
-                        break;
+                        return;
                     }
 
                     //Queue it up in order to spread the info to its neighbours and mark it as visited.

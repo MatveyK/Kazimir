@@ -8,6 +8,7 @@ namespace mattatz.VoxelSystem {
 
         [SerializeField] int count = 10;
         [SerializeField] private bool optimise = false;
+        [SerializeField] private bool probabilisticModel = true;
 
         List<Voxel> voxels;
 
@@ -48,7 +49,7 @@ namespace mattatz.VoxelSystem {
 
         private void Update() {
             if (Input.GetKeyDown("b")) {
-                model = new DiscreteModel(grid.GridMatrix, outputSize);
+                model = new DiscreteModel(grid.GridMatrix, outputSize, probabilisticModel);
             }
             if (Input.GetKeyDown("space")) {
                 while (!model.GenerationFinished) {
