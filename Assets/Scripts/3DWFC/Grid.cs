@@ -36,16 +36,19 @@ public class Grid : MonoBehaviour {
         var yi = 0;
         var zi = 0;
 
+        var offsetX = (Math.Ceiling(modelSize.x / gridCellSize) % gridCellSize) / 2;
+        var offsetZ = (Math.Ceiling(modelSize.z / gridCellSize) % gridCellSize) / 2;
+
         //Init GameObject matrix
-        for (var x = (double) -modelSize.x; x < (double) modelSize.x; x += gridCellSize) {
-            for (double y = (double) 0; y < (double) modelSize.y * 2; y += gridCellSize) {
-                for (var z = (double) -modelSize.z; z < (double) modelSize.z; z += gridCellSize) {
+        for (var x = -modelSize.x - offsetX; x < (double) modelSize.x - offsetX; x += gridCellSize) {
+            for (double y = 0; y < (double) modelSize.y * 2; y += gridCellSize) {
+                for (var z = -modelSize.z - offsetZ; z < (double) modelSize.z - offsetZ; z += gridCellSize) {
                     var gridCellObj = Instantiate(gridCellPrefab) as GameObject;
-                    var gCell = gridCellObj.GetComponent<GridCell>();
+                    var gCell = gridCellObj?.GetComponent<GridCell>();
 
                     gridCellObj.transform.parent = transform;
 
-                    var initPoint = new Vector3((float) (x + gridCellSize / 4), (float) (y + gridCellSize / 2), (float) (z + gridCellSize / 4));
+                    var initPoint = new Vector3((float) (x + gridCellSize / 2), (float) (y + gridCellSize / 2), (float) (z + gridCellSize / 2));
                     gCell.Init(initPoint, (float) gridCellSize);
 
                     //Add cell to the data struct
