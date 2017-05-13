@@ -35,6 +35,10 @@ public class VoxReaderWriter {
                     int numVoxels = stream.ReadInt32();
                     for(var i = 0; i < numVoxels; i++) voxels.Add(new Voxel(stream));
                     break;
+                case "RGBA":
+                    //TODO Treat the RGBA chunks
+                    stream.Close();
+                    return voxels;
             }
         }
 
