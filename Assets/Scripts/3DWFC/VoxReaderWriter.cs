@@ -1,11 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable SuggestVarOrType_Elsewhere
 
+// ReSharper disable UnusedVariable
+
 public class VoxReaderWriter {
+
+    private static int modelX;
+    private static int modelY;
+    private static int modelZ;
 
     private static List<Voxel> ReadVoxelStream(BinaryReader stream) {
         var voxels = new List<Voxel>();
@@ -26,9 +31,9 @@ public class VoxReaderWriter {
                     int numModels = stream.ReadInt32();
                     break;
                 case "SIZE":
-                    int x = stream.ReadInt32();
-                    int y = stream.ReadInt32();
-                    int z = stream.ReadInt32();
+                    modelX = stream.ReadInt32();
+                    modelY = stream.ReadInt32();
+                    modelZ = stream.ReadInt32();
                     stream.ReadBytes(chunkSize - 4 * 3);
                     break;
                 case "XYZI":
@@ -84,5 +89,9 @@ public class VoxReaderWriter {
 
     public static void WriteVoxelFile(string fileName, int sizeX, int sizeY, int sizeZ, ICollection<Voxel> voxels) {
         WriteVoxelStream(new BinaryWriter(File.Open(fileName, FileMode.Create)), sizeX, sizeY, sizeZ, voxels);
+    }
+
+    public static Coord3D ModelSize() {
+        return new Coord3D(modelX, modelY, modelZ);
     }
 }
