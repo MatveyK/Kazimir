@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public static class Extensions {
@@ -32,6 +33,12 @@ public static class Extensions {
             if (seenKeys.Add(keySelector(element))) {
                 yield return element;
             }
+        }
+    }
+
+    public static void WriteString(this BinaryWriter writer, string str) {
+        foreach (var chr in str) {
+            writer.Write(chr);
         }
     }
 }
