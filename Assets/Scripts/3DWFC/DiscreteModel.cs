@@ -6,30 +6,30 @@ using Random = System.Random;
 
 public class DiscreteModel {
 
-    private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
-
-    private bool[,,] mapOfChanges;
-    private List<int>[,,] outputMatrix;
-
-    private bool generationFinished = false;
-    private bool contradiction = false;
-    private int numGen;
-
-    private bool probabilisticModel = true;
-
     //All the possible directions.
     public readonly Coord3D[] Directions = new Coord3D[6]
         {Coord3D.Right, Coord3D.Left, Coord3D.Up, Coord3D.Down, Coord3D.Forward, Coord3D.Back};
 
-    //Save these fields in case of reintialisation
-    private readonly Vector3 outputSize;
+    private static readonly Random Rnd = new Random();
+
+    private bool probabilisticModel = true;
 
     private int[,,] patternMatrix;
     private List<byte[,,]> patterns;
     private readonly int patternSize;
     private Dictionary<int, double> probabilites;
 
-    private static readonly Random Rnd = new Random();
+    private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
+
+    private bool[,,] mapOfChanges;
+    private List<int>[,,] outputMatrix;
+
+    //Save these fields in case of reintialisation
+    private readonly Vector3 outputSize;
+
+    private bool generationFinished = false;
+    private bool contradiction = false;
+    private int numGen;
 
 
     public DiscreteModel(InputModel inputModel, int patternSize, Vector3 outputSize, bool probabilisticModel = true) {
