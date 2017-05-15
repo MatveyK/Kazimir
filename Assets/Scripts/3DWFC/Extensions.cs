@@ -41,4 +41,25 @@ public static class Extensions {
             writer.Write(chr);
         }
     }
+
+    public static int ContainsPattern(this List<byte[,,]> patternList, byte[,,] pattern) {
+        var index = -1;
+
+        //If the list is empty return false.
+        if (patternList.Count == 0) return -1;
+
+        foreach (var patt in patternList) {
+            for (var x = 0; x < pattern.GetLength(0); x++) {
+                for (var y = 0; y < pattern.GetLength(1); y++) {
+                    for (var z = 0; z < pattern.GetLength(2); z++) {
+                        if (patt[x, y, z] != pattern[x, y, z]) {
+                            return -1;
+                        }
+                    }
+                }
+            }
+            index++;
+        }
+        return index;
+    }
 }

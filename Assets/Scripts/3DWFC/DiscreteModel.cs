@@ -6,7 +6,6 @@ using Random = System.Random;
 public class DiscreteModel {
 
     private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
-    private readonly Dictionary<int, double> probabilites;
 
     private bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
@@ -23,19 +22,25 @@ public class DiscreteModel {
 
     //Save these fields in case of reintialisation
     private readonly Vector3 outputSize;
-    private readonly GridCell[,,] inputMatrix;
+
+    private readonly int[,,] patternMatrix;
+    private List<byte[,,]> patterns;
+    private readonly int patternSize;
+    private Dictionary<int, double> probabilites;
 
     private static readonly Random Rnd = new Random();
 
 
-    public DiscreteModel(GridCell[,,] inputMatrix, Vector3 outputSize, bool probabilisticModel = true) {
+    public DiscreteModel(InputModel inputModel, int patternSize, Vector3 outputSize, bool probabilisticModel = true) {
         mapOfChanges = new bool[(int) outputSize.x, (int) outputSize.y, (int) outputSize.z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         numGen = 0;
 
         this.outputSize = outputSize;
-        this.inputMatrix = inputMatrix;
 
+        InitModel(inputModel, patternSize);
+
+        /*
         AssignIdsToCells(inputMatrix);
         MergeCells(inputMatrix);
         probabilites = CalcProbs(inputMatrix);
@@ -43,8 +48,46 @@ public class DiscreteModel {
         InitNeighboursMap(inputMatrix);
 
         InitOutputMatrix(outputSize, inputMatrix);
+*/
 
         Debug.Log("Model Ready!");
+    }
+
+    public void InitModel(InputModel inputModel, int patternSize) {
+        var inputMatrix = new byte[inputModel.Size.x, inputModel.Size.y, inputModel.Size.z];
+        patterns = new List<byte[,,]>();
+        probabilites = new Dictionary<int, double>();
+
+        inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
+
+        for (var x = 0; x < inputModel.Size.x - patternSize; x++) {
+            for (var y = 0; y < inputModel.Size.y - patternSize; y++) {
+                for (var z = 0; z < inputModel.Size.z - patternSize; z++) {
+                    var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
+
+                    var check = patterns.ContainsPattern(currentPattern);
+                    if (check < 0) {
+                        patterns.Add(currentPattern);
+                        probabilites[patterns.Count - 1] = (double) 1 / inputMatrix.Length;
+                    }
+                    else {
+                        probabilites[check] += (double) 1 / inputMatrix.Length;
+                    }
+                }
+            }
+        }
+    }
+
+    private static byte[,,] GetCurrentPattern(byte[,,] matrix, int x, int y, int z, int patternSize) {
+        var pattern = new byte[patternSize, patternSize, patternSize];
+        for (var i = x; i < x + patternSize; i++) {
+            for (var j = y; j < y + patternSize; j++) {
+                for (var k = z; k < z + patternSize; k++) {
+                    pattern[i - x, j - y, k - z] = matrix[i, j, k];
+                }
+            }
+        }
+        return pattern;
     }
 
     private void AssignIdsToCells(GridCell[,,] matrix) {
@@ -264,7 +307,7 @@ public class DiscreteModel {
     }
 
     public void Clear() {
-        InitOutputMatrix(outputSize, inputMatrix);
+        //InitOutputMatrix(outputSize, inputMatrix);
         contradiction = false;
         generationFinished = false;
         numGen = 0;

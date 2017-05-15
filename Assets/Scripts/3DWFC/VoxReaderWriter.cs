@@ -12,7 +12,7 @@ public class VoxReaderWriter {
     private static int modelY;
     private static int modelZ;
 
-    private static List<Voxel> ReadVoxelStream(BinaryReader stream) {
+    private static InputModel ReadVoxelStream(BinaryReader stream) {
         var voxels = new List<Voxel>();
 
         string VOX = new string(stream.ReadChars(4));
@@ -43,14 +43,14 @@ public class VoxReaderWriter {
                 case "RGBA":
                     //TODO Treat the RGBA chunks
                     stream.Close();
-                    return voxels;
+                    return new InputModel(new Coord3D(modelX, modelY, modelZ), voxels);
             }
         }
 
-        return voxels;
+        return new InputModel(new Coord3D(modelX, modelY, modelZ), voxels);
     }
 
-    public static List<Voxel> ReadVoxelFile(string fileName) {
+    public static InputModel ReadVoxelFile(string fileName) {
         return ReadVoxelStream(new BinaryReader(File.Open(fileName, FileMode.Open)));
     }
 

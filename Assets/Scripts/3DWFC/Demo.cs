@@ -15,15 +15,16 @@ public class Demo : MonoBehaviour {
 
     private void Start() {
         //Read the .vox file
-        var voxels = VoxReaderWriter.ReadVoxelFile(voxFileName);
+        var inputModel = VoxReaderWriter.ReadVoxelFile(voxFileName);
 
         //Display the voxel model.
-        DisplayVoxelModel(voxels);
+        DisplayVoxelModel(inputModel.Voxels);
 
         //Center the 3D model and init grid
         transform.position = Vector3.zero;
         transform.rotation = Quaternion.AngleAxis(90, Vector3.left);
 
+        model = new DiscreteModel(inputModel, patternSize, outputSize);
     }
 
 
