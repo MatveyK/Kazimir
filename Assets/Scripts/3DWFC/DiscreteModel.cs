@@ -96,7 +96,7 @@ public class DiscreteModel {
         patterns = new List<byte[,,]>();
         patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.x / patternSize)),
             (int) Math.Ceiling((double) (inputModel.Size.y / patternSize)),
-            (int) Math.Ceiling((double) (inputModel.Size.z / patternSize)))];
+            (int) Math.Ceiling((double) (inputModel.Size.z / patternSize))];
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
 
