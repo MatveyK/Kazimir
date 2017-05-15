@@ -10,8 +10,8 @@ public class Demo : MonoBehaviour {
 
     private DiscreteModel model;
 
-    [SerializeField] private int gridCellSize = 3;
-    [SerializeField] Vector3 outputSize = new Vector3(6, 6, 6);
+    [SerializeField] private int patternSize = 3;
+    [SerializeField] Vector3 outputSize = new Vector3(10, 10, 10);
 
     private void Start() {
         //Read the .vox file
