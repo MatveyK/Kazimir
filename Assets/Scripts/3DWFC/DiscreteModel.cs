@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Random = System.Random;
@@ -23,7 +24,7 @@ public class DiscreteModel {
     //Save these fields in case of reintialisation
     private readonly Vector3 outputSize;
 
-    private readonly int[,,] patternMatrix;
+    private int[,,] patternMatrix;
     private List<byte[,,]> patterns;
     private readonly int patternSize;
     private Dictionary<int, double> probabilites;
@@ -38,7 +39,7 @@ public class DiscreteModel {
 
         this.outputSize = outputSize;
 
-        InitModel(inputModel, patternSize);
+        InitOverlappingModel(inputModel, patternSize);
 
         /*
         AssignIdsToCells(inputMatrix);
@@ -53,7 +54,7 @@ public class DiscreteModel {
         Debug.Log("Model Ready!");
     }
 
-    public void InitModel(InputModel inputModel, int patternSize) {
+    public void InitOverlappingModel(InputModel inputModel, int patternSize) {
         var inputMatrix = new byte[inputModel.Size.x, inputModel.Size.y, inputModel.Size.z];
         patterns = new List<byte[,,]>();
         probabilites = new Dictionary<int, double>();
@@ -90,43 +91,65 @@ public class DiscreteModel {
         return pattern;
     }
 
-    private void AssignIdsToCells(GridCell[,,] matrix) {
-        var index = 0;
+    public void InitSimpleModel(InputModel inputModel, int patternSize) {
+        var inputMatrix = new byte[inputModel.Size.x, inputModel.Size.y, inputModel.Size.y];
+        patterns = new List<byte[,,]>();
+        patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.x / patternSize)),
+            (int) Math.Ceiling((double) (inputModel.Size.y / patternSize)),
+            (int) Math.Ceiling((double) (inputModel.Size.z / patternSize)))];
 
-        foreach (var cell in matrix) {
-            cell.Id = index;
-            neighboursMap[cell.Id] = new Dictionary<Coord3D, List<int>>();
+        inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
 
-            index++;
+        var i = 0;
+        var j = 0;
+        var k = 0;
+
+        for (var x = 0; x < inputModel.Size.x - patternSize; x += patternSize) {
+            for (var y = 0; y < inputModel.Size.y - patternSize; y += patternSize) {
+                for (var z = 0; z < inputModel.Size.z - patternSize; z += patternSize) {
+                    var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
+
+                    var index = patterns.ContainsPattern(currentPattern);
+                    if (index < 0) {
+                        patterns.Add(currentPattern);
+                        patternMatrix[i, j, k] = patterns.Count - 1;
+                    }
+                    else {
+                        patternMatrix[i, j, k] = index;
+                    }
+
+                    i++;
+                }
+                j++;
+            }
+            k++;
         }
     }
 
-    private void InitNeighboursMap(GridCell[,,] matrix) {
+    private void InitNeighboursMap(InputModel inputModel, int patternSize) {
+        //Init the data structure.
+        for (var i = 0; i < patterns.Count; i++) {
+            neighboursMap[i] = new Dictionary<Coord3D, List<int>>();
 
-        //Init the data structure
-        foreach (var gridCell in matrix) {
             foreach (var direction in Directions) {
-                neighboursMap[gridCell.Id][direction] = new List<int>();
-
-                //Add self for testing purposes TODO REMOVE this
-                //neighboursMap[gridCell.Id][direction].Add(gridCell.Id);
+                neighboursMap[i][direction] = new List<int>();
             }
         }
 
         //Populate the data structure.
-        for (var x = 0; x < matrix.GetLength(0); x++) {
-            for (var y = 0; y < matrix.GetLength(1); y++) {
-                for (var z = 0; z < matrix.GetLength(2); z++) {
-                    var currentCell = matrix[x, y, z];
+        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
+            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
+                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
+                    var currentPattern = patternMatrix[x, y, z];
 
-                    if(x-1 >= 0) neighboursMap[currentCell.Id][Coord3D.Left].Add(matrix[x-1, y ,z].Id);
-                    if (x + 1 < matrix.GetLength(0)) neighboursMap[currentCell.Id][Coord3D.Right].Add(matrix[x+1, y, z].Id);
+                    if(x-1 >= 0) neighboursMap[currentPattern][Coord3D.Left].Add(patternMatrix[x-1, y ,z]);
+                    if (x + 1 < patternMatrix.GetLength(0)) neighboursMap[currentPattern][Coord3D.Right].Add(patternMatrix[x+1, y, z]);
 
-                    if(y-1 >= 0) neighboursMap[currentCell.Id][Coord3D.Down].Add(matrix[x, y-1, z].Id);
-                    if(y+1 < matrix.GetLength(1)) neighboursMap[currentCell.Id][Coord3D.Up].Add(matrix[x, y+1, z].Id);
+                    if(y-1 >= 0) neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, y-1, z]);
+                    if(y+1 < patternMatrix.GetLength(1)) neighboursMap[currentPattern][Coord3D.Up].Add(patternMatrix[x, y+1, z]);
 
-                    if(z-1 >= 0) neighboursMap[currentCell.Id][Coord3D.Back].Add(matrix[x, y, z-1].Id);
-                    if(z+1 < matrix.GetLength(2)) neighboursMap[currentCell.Id][Coord3D.Forward].Add(matrix[x, y, z+1].Id);
+                    if(z-1 >= 0) neighboursMap[currentPattern][Coord3D.Back].Add(patternMatrix[x, y, z-1]);
+                    if(z+1 < patternMatrix.GetLength(2)) neighboursMap[currentPattern][Coord3D.Forward].Add(patternMatrix[x, y, z+1]);
                 }
             }
         }
@@ -146,44 +169,6 @@ public class DiscreteModel {
                 }
             }
         }
-    }
-
-    private static void MergeCells(GridCell[,,] inputMatrix) {
-        foreach (var gridCell in inputMatrix) {
-            foreach (var otherGridCell in inputMatrix) {
-                if (CompareCells(gridCell, otherGridCell)) {
-                    otherGridCell.Id = gridCell.Id;
-                }
-            }
-        }
-
-        var gridCellList = inputMatrix.Cast<GridCell>().ToList();
-        Debug.Log($"DISTINCT CELLS: {gridCellList.DistinctBy(x => x.Id).ToList().Count}");
-    }
-
-    private static Dictionary<int, double> CalcProbs(GridCell[,,] inputMatrix) {
-        var probs = inputMatrix.Cast<GridCell>()
-            .ToList()
-            .GroupBy(cell => cell.Id)
-            .ToDictionary(group => group.Key, group => (double) group.Count() / (double) inputMatrix.Length);
-
-        return probs;
-    }
-
-    private static bool CompareCells(GridCell firstCell, GridCell secondCell) {
-
-        //First check if they have the same number of voxels
-        if (firstCell.ContainedVoxels.Count != secondCell.ContainedVoxels.Count)
-            return false;
-
-        //Then check if the positions of each two voxels in the cell match to a certain
-        //threshold.
-        var sameVoxels = from voxel in firstCell.ContainedVoxels
-            from otherVoxel in secondCell.ContainedVoxels
-            where Vector3.SqrMagnitude(voxel.transform.localPosition - otherVoxel.transform.localPosition) < 0.6f
-            select voxel;
-
-        return sameVoxels.Count() == firstCell.ContainedVoxels.Count;
     }
 
     private void ReInitMapOfChanges() {
