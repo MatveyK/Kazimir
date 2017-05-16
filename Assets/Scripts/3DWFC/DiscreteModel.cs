@@ -12,7 +12,7 @@ public class DiscreteModel {
 
     private static readonly Random Rnd = new Random();
 
-    private bool probabilisticModel = true;
+    private bool probabilisticModel;
 
     private int[,,] patternMatrix;
     private List<byte[,,]> patterns;
@@ -25,23 +25,24 @@ public class DiscreteModel {
     private List<int>[,,] outputMatrix;
 
     //Save these fields in case of reintialisation
-    private readonly Vector3 outputSize;
+    private readonly Coord3D outputSize;
 
     private bool generationFinished = false;
     private bool contradiction = false;
     private int numGen;
 
 
-    public DiscreteModel(InputModel inputModel, int patternSize, Vector3 outputSize, bool probabilisticModel = true) {
+    public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool probabilisticModel = true) {
         mapOfChanges = new bool[(int) outputSize.x, (int) outputSize.y, (int) outputSize.z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
+        this.probabilisticModel = probabilisticModel;
         numGen = 0;
 
         this.outputSize = outputSize;
 
         InitSimpleModel(inputModel, patternSize);
         InitNeighboursMap();
-        InitOutputMatrix(new Coord3D((int) outputSize.x, (int) outputSize.y, (int) this.outputSize.z));
+        InitOutputMatrix(outputSize);
 
         /*
         AssignIdsToCells(inputMatrix);
@@ -296,7 +297,7 @@ public class DiscreteModel {
     }
 
     public void Clear() {
-        //InitOutputMatrix(outputSize, inputMatrix);
+        InitOutputMatrix(outputSize);
         contradiction = false;
         generationFinished = false;
         numGen = 0;

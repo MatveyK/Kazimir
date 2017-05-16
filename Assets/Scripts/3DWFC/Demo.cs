@@ -24,7 +24,8 @@ public class Demo : MonoBehaviour {
         transform.position = Vector3.zero;
         transform.rotation = Quaternion.AngleAxis(90, Vector3.left);
 
-        model = new DiscreteModel(inputModel, patternSize, outputSize);
+        var outputSizeInCoord = new Coord3D((int) outputSize.x, (int) outputSize.y, (int) outputSize.z);
+        model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, false);
     }
 
 
