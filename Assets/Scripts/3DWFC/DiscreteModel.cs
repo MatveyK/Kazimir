@@ -39,7 +39,8 @@ public class DiscreteModel {
 
         this.outputSize = outputSize;
 
-        InitOverlappingModel(inputModel, patternSize);
+        InitSimpleModel(inputModel, patternSize);
+        InitNeighboursMap(inputModel, patternSize);
 
         /*
         AssignIdsToCells(inputMatrix);
@@ -94,9 +95,9 @@ public class DiscreteModel {
     public void InitSimpleModel(InputModel inputModel, int patternSize) {
         var inputMatrix = new byte[inputModel.Size.x, inputModel.Size.y, inputModel.Size.y];
         patterns = new List<byte[,,]>();
-        patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.x / patternSize)),
-            (int) Math.Ceiling((double) (inputModel.Size.y / patternSize)),
-            (int) Math.Ceiling((double) (inputModel.Size.z / patternSize))];
+        patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.x / patternSize) + 1),
+            (int) Math.Ceiling((double) (inputModel.Size.y / patternSize) + 1),
+            (int) Math.Ceiling((double) (inputModel.Size.z / patternSize) + 1)];
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
 
@@ -120,8 +121,10 @@ public class DiscreteModel {
 
                     i++;
                 }
+                i = 0;
                 j++;
             }
+            j = 0;
             k++;
         }
     }

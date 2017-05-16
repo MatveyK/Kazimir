@@ -8,12 +8,12 @@ using System.IO;
 
 public class VoxReaderWriter {
 
-    private static int modelX;
-    private static int modelY;
-    private static int modelZ;
 
     private static InputModel ReadVoxelStream(BinaryReader stream) {
         var voxels = new List<Voxel>();
+        var modelX = 0;
+        var modelY = 0;
+        var modelZ = 0;
 
         string VOX = new string(stream.ReadChars(4));
         int version = stream.ReadInt32();
@@ -89,9 +89,5 @@ public class VoxReaderWriter {
 
     public static void WriteVoxelFile(string fileName, int sizeX, int sizeY, int sizeZ, ICollection<Voxel> voxels) {
         WriteVoxelStream(new BinaryWriter(File.Open(fileName, FileMode.Create)), sizeX, sizeY, sizeZ, voxels);
-    }
-
-    public static Coord3D ModelSize() {
-        return new Coord3D(modelX, modelY, modelZ);
     }
 }
