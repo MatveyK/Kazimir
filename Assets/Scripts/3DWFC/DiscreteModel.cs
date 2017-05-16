@@ -36,6 +36,7 @@ public class DiscreteModel {
         mapOfChanges = new bool[(int) outputSize.x, (int) outputSize.y, (int) outputSize.z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         this.probabilisticModel = probabilisticModel;
+        this.patternSize = patternSize;
         numGen = 0;
 
         this.outputSize = outputSize;
@@ -303,12 +304,20 @@ public class DiscreteModel {
         numGen = 0;
     }
 
-    public int[,,] GetOutput() {
-        var res = new int[outputMatrix.GetLength(0), outputMatrix.GetLength(1), outputMatrix.GetLength(2)];
-        for (var x = 0; x < outputMatrix.GetLength(0); x++) {
-            for (var y = 0; y < outputMatrix.GetLength(1); y++) {
-                for (var z = 0; z < outputMatrix.GetLength(2); z++) {
-                    res[x, y, z] = outputMatrix[x, y, z].First();
+    public byte[,,] GetOutput() {
+        var res = new byte[(int) outputMatrix.GetLength(0) * patternSize, outputMatrix.GetLength(1) * patternSize, outputMatrix.GetLength(2) * patternSize];
+        for (var x = 0; x < outputMatrix.GetLength(0); x += patternSize) {
+            for (var y = 0; y < outputMatrix.GetLength(1); y += patternSize) {
+                for (var z = 0; z < outputMatrix.GetLength(2); z += patternSize) {
+
+                    var currentPattern = patterns[outputMatrix[x, y, z].First()];
+                    for (var i = 0; i < currentPattern.GetLength(0); i++) {
+                        for (var j = 0; j < currentPattern.GetLength(1); j++) {
+                            for (var k = 0; k < currentPattern.GetLength(2); k++) {
+                                res[x + i, y + j, z + k] = currentPattern[i, j, k];
+                            }
+                        }
+                    }
                 }
             }
         }
