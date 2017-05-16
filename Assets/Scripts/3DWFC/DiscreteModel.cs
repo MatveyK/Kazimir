@@ -40,7 +40,8 @@ public class DiscreteModel {
         this.outputSize = outputSize;
 
         InitSimpleModel(inputModel, patternSize);
-        InitNeighboursMap(inputModel, patternSize);
+        InitNeighboursMap();
+        InitOutputMatrix(new Coord3D((int) outputSize.x, (int) outputSize.y, (int) this.outputSize.z));
 
         /*
         AssignIdsToCells(inputMatrix);
@@ -129,7 +130,7 @@ public class DiscreteModel {
         }
     }
 
-    private void InitNeighboursMap(InputModel inputModel, int patternSize) {
+    private void InitNeighboursMap() {
         //Init the data structure.
         for (var i = 0; i < patterns.Count; i++) {
             neighboursMap[i] = new Dictionary<Coord3D, List<int>>();
@@ -158,16 +159,16 @@ public class DiscreteModel {
         }
     }
 
-    private void InitOutputMatrix(Vector3 size, GridCell[,,] inputMatrix) {
-        outputMatrix = new List<int>[(int) size.x, (int) size.y, (int) size.z];
+    private void InitOutputMatrix(Coord3D size) {
+        outputMatrix = new List<int>[size.x, size.y, size.z];
 
         for (var x = 0; x < size.x; x++) {
             for (var y = 0; y < size.y; y++) {
                 for (var z = 0; z < size.z; z++) {
                     outputMatrix[x, y, z] = new List<int>();
 
-                    foreach (var cell in inputMatrix) {
-                        outputMatrix[x, y, z].Add(cell.Id);
+                    for (var i = 0; i < patterns.Count; i++) {
+                        outputMatrix[x, y, z].Add(i);
                     }
                 }
             }
