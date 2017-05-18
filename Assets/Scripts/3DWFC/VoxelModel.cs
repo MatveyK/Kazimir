@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class VoxelModel : MonoBehaviour {
 
-    public void Init(byte[,,] output, bool optimise = true) {
+    public void Display(byte[,,] output, bool optimise = true) {
 
         var voxelCube = Resources.Load("Prefabs/Cube");
 
@@ -23,4 +24,21 @@ public class VoxelModel : MonoBehaviour {
             }
         }
     }
+
+    public void Display(List<Voxel> voxels) {
+        //Load the voxel prefab
+        var voxelCube = Resources.Load("Prefabs/Cube");
+
+        voxels.ForEach(voxel => {
+            var cube = Instantiate(voxelCube) as GameObject;
+            cube.transform.parent = transform;
+            cube.transform.localPosition = new Vector3(voxel.X, voxel.Y, voxel.Z);
+            cube.transform.localScale = Vector3.one;
+            cube.transform.localRotation = Quaternion.identity;
+
+            cube.tag = "Voxel";
+        });
+        Debug.Log("TOTAL CUBES: " + voxels.Count);
+    }
+
 }

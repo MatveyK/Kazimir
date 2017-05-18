@@ -13,16 +13,20 @@ public class Demo : MonoBehaviour {
     [SerializeField] private int patternSize = 3;
     [SerializeField] Vector3 outputSize = new Vector3(10, 10, 10);
 
+    private GameObject inputVoxelModelObj;
+
     private void Start() {
         //Read the .vox file
         var inputModel = VoxReaderWriter.ReadVoxelFile(voxFileName);
 
         //Display the voxel model.
-        DisplayVoxelModel(inputModel.Voxels);
+        inputVoxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
+        var voxModel = inputVoxelModelObj?.GetComponent<VoxelModel>();
+        voxModel?.Display(inputModel.Voxels);
 
         //Center the 3D model and init grid
-        transform.position = Vector3.zero;
-        transform.rotation = Quaternion.AngleAxis(90, Vector3.left);
+        voxModel.transform.position = Vector3.zero;
+        voxModel.transform.rotation = Quaternion.AngleAxis(90, Vector3.left);
 
         var outputSizeInCoord = new Coord3D((int) outputSize.x, (int) outputSize.y, (int) outputSize.z);
         model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, false);
@@ -43,7 +47,7 @@ public class Demo : MonoBehaviour {
         }
         if (Input.GetKeyDown("v")) {
             //Stop displaying the input model.
-            enabled = false;
+            inputVoxelModelObj.SetActive(false);
 
             var output = model.GetOutput();
 
@@ -51,26 +55,10 @@ public class Demo : MonoBehaviour {
         }
     }
 
-    private void DisplayVoxelModel(List<Voxel> voxels) {
-        //Load the voxel prefab
-        var voxelCube = Resources.Load("Prefabs/Cube");
-
-        voxels.ForEach(voxel => {
-            var cube = Instantiate(voxelCube) as GameObject;
-            cube.transform.parent = transform;
-            cube.transform.localPosition = new Vector3(voxel.X, voxel.Y, voxel.Z);
-            cube.transform.localScale = Vector3.one;
-            cube.transform.localRotation = Quaternion.identity;
-
-            cube.tag = "Voxel";
-        });
-        Debug.Log("TOTAL CUBES: " + voxels.Count);
-    }
-
     private static void DisplayOutput(byte[,,] output) {
         var voxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
         var voxelModel = voxelModelObj?.GetComponent<VoxelModel>();
 
-        voxelModel?.Init(output);
+        voxelModel?.Display(output);
     }
 }
