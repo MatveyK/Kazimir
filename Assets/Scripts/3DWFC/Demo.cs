@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 
 public class Demo : MonoBehaviour {
     [SerializeField] private string voxFileName;
 
     [SerializeField] private bool optimise = false;
+    [SerializeField] private bool overlapping = true;
     [SerializeField] private bool probabilisticModel = true;
 
     private DiscreteModel model;
@@ -29,7 +29,7 @@ public class Demo : MonoBehaviour {
         voxModel.transform.rotation = Quaternion.AngleAxis(90, Vector3.left);
 
         var outputSizeInCoord = new Coord3D((int) outputSize.x, (int) outputSize.y, (int) outputSize.z);
-        model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, false);
+        model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, overlapping, probabilisticModel);
     }
 
 
@@ -60,5 +60,8 @@ public class Demo : MonoBehaviour {
         var voxelModel = voxelModelObj?.GetComponent<VoxelModel>();
 
         voxelModel?.Display(output);
+
+        voxelModelObj.transform.position = Vector3.zero;
+        voxelModelObj.transform.rotation = Quaternion.AngleAxis(90, Vector3.left);
     }
 }

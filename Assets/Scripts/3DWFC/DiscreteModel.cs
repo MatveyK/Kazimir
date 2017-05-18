@@ -32,8 +32,8 @@ public class DiscreteModel {
     private int numGen;
 
 
-    public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool probabilisticModel = true) {
-        mapOfChanges = new bool[(int) outputSize.x, (int) outputSize.y, (int) outputSize.z];
+    public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool probabilisticModel = true) {
+        mapOfChanges = new bool[outputSize.x, outputSize.y, outputSize.z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         this.probabilisticModel = probabilisticModel;
         this.patternSize = patternSize;
@@ -41,42 +41,44 @@ public class DiscreteModel {
 
         this.outputSize = outputSize;
 
-        InitSimpleModel(inputModel, patternSize);
+        if (overlapping) {
+            InitOverlappingModel(inputModel, patternSize);
+        }
+        else {
+            InitSimpleModel(inputModel, patternSize);
+        }
         InitNeighboursMap();
         InitOutputMatrix(outputSize);
 
-        /*
-        AssignIdsToCells(inputMatrix);
-        MergeCells(inputMatrix);
-        probabilites = CalcProbs(inputMatrix);
 
-        InitNeighboursMap(inputMatrix);
-
-        InitOutputMatrix(outputSize, inputMatrix);
-*/
-
+        Debug.Log($"Model size: {new Vector3(inputModel.Size.x, inputModel.Size.y, inputModel.Size.z)}");
         Debug.Log("Model Ready!");
     }
 
     public void InitOverlappingModel(InputModel inputModel, int patternSize) {
         var inputMatrix = new byte[inputModel.Size.x, inputModel.Size.y, inputModel.Size.z];
         patterns = new List<byte[,,]>();
+        patternMatrix = new int[inputModel.Size.x - (patternSize - 1),
+            inputModel.Size.y - (patternSize - 1),
+            inputModel.Size.z - (patternSize - 1)];
         probabilites = new Dictionary<int, double>();
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
 
-        for (var x = 0; x < inputModel.Size.x - patternSize; x++) {
-            for (var y = 0; y < inputModel.Size.y - patternSize; y++) {
-                for (var z = 0; z < inputModel.Size.z - patternSize; z++) {
+        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
+            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
+                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
                     var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
 
-                    var check = patterns.ContainsPattern(currentPattern);
-                    if (check < 0) {
+                    var index = patterns.ContainsPattern(currentPattern);
+                    if (index < 0) {
                         patterns.Add(currentPattern);
-                        probabilites[patterns.Count - 1] = (double) 1 / inputMatrix.Length;
+                        patternMatrix[x, y, z] = patterns.Count - 1;
+                        probabilites[patterns.Count - 1] = (double) 1 / patternMatrix.Length;
                     }
                     else {
-                        probabilites[check] += (double) 1 / inputMatrix.Length;
+                        patternMatrix[x, y, z] = index;
+                        probabilites[index] += (double) 1 / patternMatrix.Length;
                     }
                 }
             }
@@ -305,7 +307,7 @@ public class DiscreteModel {
     }
 
     public byte[,,] GetOutput() {
-        var res = new byte[(int) outputMatrix.GetLength(0) * patternSize, outputMatrix.GetLength(1) * patternSize, outputMatrix.GetLength(2) * patternSize];
+        var res = new byte[outputMatrix.GetLength(0) * patternSize, outputMatrix.GetLength(1) * patternSize, outputMatrix.GetLength(2) * patternSize];
         for (var x = 0; x < outputMatrix.GetLength(0); x += patternSize) {
             for (var y = 0; y < outputMatrix.GetLength(1); y += patternSize) {
                 for (var z = 0; z < outputMatrix.GetLength(2); z += patternSize) {
