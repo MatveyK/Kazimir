@@ -42,6 +42,12 @@ public class Demo : MonoBehaviour {
             Debug.Log($"Generation finished after {model.NumGen} iterations!");
         }
         if (Input.GetKeyDown("v")) {
+            //Stop displaying the input model.
+            enabled = false;
+
+            var output = model.GetOutput();
+
+            DisplayOutput(output);
         }
     }
 
@@ -59,5 +65,12 @@ public class Demo : MonoBehaviour {
             cube.tag = "Voxel";
         });
         Debug.Log("TOTAL CUBES: " + voxels.Count);
+    }
+
+    private static void DisplayOutput(byte[,,] output) {
+        var voxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
+        var voxelModel = voxelModelObj?.GetComponent<VoxelModel>();
+
+        voxelModel?.Init(output);
     }
 }
