@@ -22,7 +22,7 @@ public class Demo : MonoBehaviour {
         //Display the voxel model.
         inputVoxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
         var voxModel = inputVoxelModelObj?.GetComponent<VoxelModel>();
-        voxModel?.Display(inputModel.Voxels);
+        voxModel?.Display(inputModel.Voxels, optimise);
 
         //Center the 3D model and init grid
         voxModel.transform.position = Vector3.zero;
@@ -55,11 +55,11 @@ public class Demo : MonoBehaviour {
         }
     }
 
-    private static void DisplayOutput(byte[,,] output) {
+    private void DisplayOutput(byte[,,] output) {
         var voxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
         var voxelModel = voxelModelObj?.GetComponent<VoxelModel>();
 
-        voxelModel?.Display(output);
+        voxelModel?.Display(output, optimise);
 
         voxelModelObj.transform.position = Vector3.zero;
         voxelModelObj.transform.rotation = Quaternion.AngleAxis(90, Vector3.left);
