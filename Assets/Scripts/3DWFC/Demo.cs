@@ -2,7 +2,7 @@
 
 
 public class Demo : MonoBehaviour {
-    [SerializeField] private string voxFileName;
+    [SerializeField] private string voxFileName = "castle.vox";
 
     [SerializeField] private bool optimise = false;
     [SerializeField] private bool overlapping = true;
