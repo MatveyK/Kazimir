@@ -48,6 +48,7 @@ public class DiscreteModel {
             InitSimpleModel(inputModel, patternSize);
         }
         InitNeighboursMap();
+        DetectNeighbours();
         InitOutputMatrix(outputSize);
 
 
@@ -132,6 +133,28 @@ public class DiscreteModel {
             j = 0;
             k++;
         }
+    }
+
+    private void DetectNeighbours() {
+        foreach (var pattern in patternMatrix) {
+            foreach (var otherPattern in patternMatrix) {
+                CheckAddNeighbour(pattern, otherPattern);
+            }
+        }
+    }
+
+    private void CheckAddNeighbour(int pattern, int otherPattern) {
+        var patternStruct = patterns[pattern];
+        var otherPatternStruct = patterns[otherPattern];
+        
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Left)) neighboursMap[pattern][Coord3D.Left].Add(otherPattern);
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Right)) neighboursMap[pattern][Coord3D.Right].Add(otherPattern);
+        
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Down)) neighboursMap[pattern][Coord3D.Down].Add(otherPattern);
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Up)) neighboursMap[pattern][Coord3D.Up].Add(otherPattern);
+        
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Back)) neighboursMap[pattern][Coord3D.Back].Add(otherPattern);
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Forward)) neighboursMap[pattern][Coord3D.Forward].Add(otherPattern);
     }
 
     private void InitNeighboursMap() {

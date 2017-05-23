@@ -62,4 +62,51 @@ public static class Extensions {
         }
         return index;
     }
+
+    public static bool FitsPattern(this byte[,,] pattern, byte[,,] otherPattern, Coord3D side) {
+        int startX = 0;
+        int startY = 0;
+        int startZ = 0;
+
+        int endX = pattern.GetLength(0);
+        int endY = pattern.GetLength(1);
+        int endZ = pattern.GetLength(2);
+
+        if (side.Equals(Coord3D.Left)) {
+            
+            startX = pattern.GetLength(0) - 1;
+            
+        } else if (side.Equals(Coord3D.Right)) {
+            
+            endX = 1;
+            
+        } else if (side.Equals(Coord3D.Down)) {
+
+            endY = 1;
+            
+        } else if (side.Equals(Coord3D.Up)) {
+
+            startY = pattern.GetLength(1) - 1;
+            
+        } else if (side.Equals(Coord3D.Back)) {
+
+            endZ = 1;
+
+        } else if (side.Equals(Coord3D.Forward)) {
+
+            startZ = pattern.GetLength(2) - 1;
+            
+        }
+
+        for (var x = startX; x < endX; x++) {
+            for (var y = startY; y < endY; y++) {
+                for (var z = startZ; z < endZ; z++) {
+                    if (pattern[x, y, y] != otherPattern[x, y, z])
+                        return false;
+                }
+            }
+        }
+
+        return true;
+    }
 }
