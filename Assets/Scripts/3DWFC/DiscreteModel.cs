@@ -99,7 +99,7 @@ public class DiscreteModel {
     }
 
     public void InitSimpleModel(InputModel inputModel, int patternSize) {
-        var inputMatrix = new byte[inputModel.Size.x, inputModel.Size.y, inputModel.Size.y];
+        var inputMatrix = new byte[inputModel.Size.x, inputModel.Size.y, inputModel.Size.z];
         patterns = new List<byte[,,]>();
         patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.x / patternSize) + 1),
             (int) Math.Ceiling((double) (inputModel.Size.y / patternSize) + 1),
@@ -111,9 +111,9 @@ public class DiscreteModel {
         var j = 0;
         var k = 0;
 
-        for (var x = 0; x < inputModel.Size.x - patternSize; x += patternSize) {
-            for (var y = 0; y < inputModel.Size.y - patternSize; y += patternSize) {
-                for (var z = 0; z < inputModel.Size.z - patternSize; z += patternSize) {
+        for (var x = 0; x <= inputModel.Size.x - patternSize; x += patternSize) {
+            for (var y = 0; y <= inputModel.Size.y - patternSize; y += patternSize) {
+                for (var z = 0; z <= inputModel.Size.z - patternSize; z += patternSize) {
                     var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
 
                     var index = patterns.ContainsPattern(currentPattern);
@@ -147,14 +147,20 @@ public class DiscreteModel {
         var patternStruct = patterns[pattern];
         var otherPatternStruct = patterns[otherPattern];
         
-        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Left)) neighboursMap[pattern][Coord3D.Left].Add(otherPattern);
-        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Right)) neighboursMap[pattern][Coord3D.Right].Add(otherPattern);
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Left) && !neighboursMap[pattern][Coord3D.Left].Contains(otherPattern)) 
+            neighboursMap[pattern][Coord3D.Left].Add(otherPattern);
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Right) && !neighboursMap[pattern][Coord3D.Right].Contains(otherPattern))
+            neighboursMap[pattern][Coord3D.Right].Add(otherPattern);
         
-        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Down)) neighboursMap[pattern][Coord3D.Down].Add(otherPattern);
-        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Up)) neighboursMap[pattern][Coord3D.Up].Add(otherPattern);
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Down) && !neighboursMap[pattern][Coord3D.Down].Contains(otherPattern)) 
+            neighboursMap[pattern][Coord3D.Down].Add(otherPattern);
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Up) && !neighboursMap[pattern][Coord3D.Up].Contains(otherPattern)) 
+            neighboursMap[pattern][Coord3D.Up].Add(otherPattern);
         
-        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Back)) neighboursMap[pattern][Coord3D.Back].Add(otherPattern);
-        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Forward)) neighboursMap[pattern][Coord3D.Forward].Add(otherPattern);
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Back) && !neighboursMap[pattern][Coord3D.Back].Contains(otherPattern)) 
+            neighboursMap[pattern][Coord3D.Back].Add(otherPattern);
+        if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Forward) && !neighboursMap[pattern][Coord3D.Forward].Contains(otherPattern)) 
+            neighboursMap[pattern][Coord3D.Forward].Add(otherPattern);
     }
 
     private void InitNeighboursMap() {
@@ -182,6 +188,13 @@ public class DiscreteModel {
                     if(z-1 >= 0) neighboursMap[currentPattern][Coord3D.Back].Add(patternMatrix[x, y, z-1]);
                     if(z+1 < patternMatrix.GetLength(2)) neighboursMap[currentPattern][Coord3D.Forward].Add(patternMatrix[x, y, z+1]);
                 }
+            }
+        }
+        
+        //Eliminate duplicates in the neighbours map.
+        for (var i = 0; i < patterns.Count; i++) {
+            foreach (var direction in Directions) {
+                neighboursMap[i][direction] = neighboursMap[i][direction].Distinct().ToList();
             }
         }
     }

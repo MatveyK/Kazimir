@@ -10,8 +10,8 @@ public struct Voxel {
     public Voxel(BinaryReader stream) {
 
         X = stream.ReadByte();
-        Y = stream.ReadByte();
         Z = stream.ReadByte();
+        Y = stream.ReadByte();
 
         Color = stream.ReadByte();
     }

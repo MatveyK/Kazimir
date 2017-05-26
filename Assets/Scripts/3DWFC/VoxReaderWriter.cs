@@ -31,9 +31,10 @@ public class VoxReaderWriter {
                     int numModels = stream.ReadInt32();
                     break;
                 case "SIZE":
+                    //Have to inverse the y and z since the representation in MagicaVoxel is different from Unity.
                     modelX = stream.ReadInt32();
-                    modelY = stream.ReadInt32();
                     modelZ = stream.ReadInt32();
+                    modelY = stream.ReadInt32();
                     stream.ReadBytes(chunkSize - 4 * 3);
                     break;
                 case "XYZI":

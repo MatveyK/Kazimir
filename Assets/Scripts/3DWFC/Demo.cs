@@ -26,7 +26,6 @@ public class Demo : MonoBehaviour {
 
         //Center the 3D model and init grid
         voxModel.transform.position = Vector3.zero;
-        voxModel.transform.rotation = Quaternion.AngleAxis(90, Vector3.left);
 
         var outputSizeInCoord = new Coord3D((int) outputSize.x, (int) outputSize.y, (int) outputSize.z);
         model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, overlapping, probabilisticModel);
@@ -62,6 +61,5 @@ public class Demo : MonoBehaviour {
         voxelModel?.Display(output, optimise);
 
         voxelModelObj.transform.position = Vector3.zero;
-        voxelModelObj.transform.rotation = Quaternion.AngleAxis(90, Vector3.left);
     }
 }
