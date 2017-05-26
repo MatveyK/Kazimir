@@ -66,9 +66,9 @@ public class DiscreteModel {
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
 
-        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
-            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
-                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
+        for (var x = 0; x <= patternMatrix.GetLength(0); x++) {
+            for (var y = 0; y <= patternMatrix.GetLength(1); y++) {
+                for (var z = 0; z <= patternMatrix.GetLength(2); z++) {
                     var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
 
                     var index = patterns.ContainsPattern(currentPattern);
