@@ -14,6 +14,7 @@ public class Demo : MonoBehaviour {
     [SerializeField] Vector3 outputSize = new Vector3(10, 10, 10);
 
     private GameObject inputVoxelModelObj;
+    private GameObject outputVoxelModelObj;
 
     private void Start() {
         //Read the .vox file
@@ -52,14 +53,21 @@ public class Demo : MonoBehaviour {
 
             DisplayOutput(output);
         }
+        if (Input.GetKeyDown("c")) {
+            model.Clear();
+            inputVoxelModelObj.SetActive(true);
+            Destroy(outputVoxelModelObj);
+            
+            Debug.Log("Model cleared!");
+        }
     }
 
     private void DisplayOutput(byte[,,] output) {
-        var voxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
-        var voxelModel = voxelModelObj?.GetComponent<VoxelModel>();
+        outputVoxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
+        var voxelModel = outputVoxelModelObj?.GetComponent<VoxelModel>();
 
         voxelModel?.Display(output, optimise);
 
-        voxelModelObj.transform.position = Vector3.zero;
+        outputVoxelModelObj.transform.position = Vector3.zero;
     }
 }
