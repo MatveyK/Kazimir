@@ -43,24 +43,27 @@ public static class Extensions {
     }
 
     public static int ContainsPattern(this List<byte[,,]> patternList, byte[,,] pattern) {
-        var index = -1;
-
         //If the list is empty return false.
         if (patternList.Count == 0) return -1;
 
+        var index = 0;
+        
         foreach (var patt in patternList) {
+            var sameVox = 0;
             for (var x = 0; x < pattern.GetLength(0); x++) {
                 for (var y = 0; y < pattern.GetLength(1); y++) {
                     for (var z = 0; z < pattern.GetLength(2); z++) {
-                        if (patt[x, y, z] != pattern[x, y, z]) {
-                            return -1;
+                        if (patt[x, y, z] == pattern[x, y, z]) {
+                            sameVox++;
                         }
                     }
                 }
             }
+            if (sameVox == pattern.Length) return index;
             index++;
         }
-        return index;
+
+        return -1;
     }
 
     public static bool FitsPattern(this byte[,,] pattern, byte[,,] otherPattern, Coord3D side) {

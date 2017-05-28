@@ -51,6 +51,12 @@ public class DiscreteModel {
         DetectNeighbours();
         InitOutputMatrix(outputSize);
 
+        var j = 0;
+        for (int i = 0; i < patterns.Count; i++) {
+            j += Directions.Count(direction => neighboursMap[i][direction].Count == 0);
+        }
+        
+        Debug.Log($"ERRORES {j}");
 
         Debug.Log($"Model size: {new Vector3(inputModel.Size.x, inputModel.Size.y, inputModel.Size.z)}");
         Debug.Log("Model Ready!");
@@ -66,9 +72,12 @@ public class DiscreteModel {
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
 
-        for (var x = 0; x <= patternMatrix.GetLength(0); x++) {
-            for (var y = 0; y <= patternMatrix.GetLength(1); y++) {
-                for (var z = 0; z <= patternMatrix.GetLength(2); z++) {
+        //Add "empty space" pattern.
+        //patterns.Add(CreateEmptyPattern(patternSize));
+        
+        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
+            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
+                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
                     var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
 
                     var index = patterns.ContainsPattern(currentPattern);
@@ -106,6 +115,9 @@ public class DiscreteModel {
             (int) Math.Ceiling((double) (inputModel.Size.z / patternSize) + 1)];
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
+        
+        //Add "empty space" pattern.
+        //patterns.Add(CreateEmptyPattern(patternSize));
 
         var i = 0;
         var j = 0;
@@ -197,6 +209,16 @@ public class DiscreteModel {
                 neighboursMap[i][direction] = neighboursMap[i][direction].Distinct().ToList();
             }
         }
+        
+        //Add the empty space in case a pattern has no neighbour.
+        /*
+        for (var i = 0; i < patterns.Count; i++) {
+            foreach (var direction in Directions) {
+                if(neighboursMap[i][direction].Count == 0) 
+                    neighboursMap[i][direction].Add(0);
+            }
+        }
+        */
     }
 
     private void InitOutputMatrix(Coord3D size) {
@@ -368,6 +390,19 @@ public class DiscreteModel {
             .ToList()
             .GroupBy(state => state.First())
             .ToDictionary(group => group.Key, group => (float) group.Count() / (float) outputMatrix.Length);
+    }
+
+    private static byte[,,] CreateEmptyPattern(int pSize) {
+        var res = new byte[pSize, pSize, pSize];
+
+        for (var i = 0; i < res.GetLength(0); i++) {
+            for (var j = 0; j < res.GetLength(1); j++) {
+                for (var k = 0; k < res.GetLength(2); k++) {
+                    res[i, j, k] = 0;
+                }
+            }
+        }
+        return res;
     }
 
 
