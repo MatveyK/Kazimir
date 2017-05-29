@@ -115,19 +115,23 @@ public static class Extensions {
 
         }
 
+        var loopX2 = startX2;
+        var loopY2 = startY2;
+        var loopZ2 = startZ2;
+        
         for (var x = startX; x < endX; x++) {
             for (var y = startY; y < endY; y++) {
                 for (var z = startZ; z < endZ; z++) {
-                    if (pattern[x, y, z] != otherPattern[startX2, startY2, startZ2])
+                    if (pattern[x, y, z] != otherPattern[loopX2, loopY2, loopZ2])
                         return false;
 
-                    startZ2++;
+                    loopZ2++;
                 }
-                startZ2 = 0;
-                startY2++;
+                loopZ2 = startZ2;
+                loopY2++;
             }
-            startY2 = 0;
-            startX2++;
+            loopY2 = startY2;
+            loopX2++;
         }
 
         return true;

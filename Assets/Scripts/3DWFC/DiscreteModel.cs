@@ -111,9 +111,9 @@ public class DiscreteModel {
     public void InitSimpleModel(InputModel inputModel, int patternSize) {
         var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
         patterns = new List<byte[,,]>();
-        patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.X / patternSize) + 1),
-            (int) Math.Ceiling((double) (inputModel.Size.Y / patternSize) + 1),
-            (int) Math.Ceiling((double) (inputModel.Size.Z / patternSize) + 1)];
+        patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.X / patternSize)),
+            (int) Math.Ceiling((double) (inputModel.Size.Y / patternSize)),
+            (int) Math.Ceiling((double) (inputModel.Size.Z / patternSize))];
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
         
