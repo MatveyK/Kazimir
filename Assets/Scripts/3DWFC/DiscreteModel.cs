@@ -33,7 +33,7 @@ public class DiscreteModel {
 
 
     public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool probabilisticModel = true) {
-        mapOfChanges = new bool[outputSize.x, outputSize.y, outputSize.z];
+        mapOfChanges = new bool[outputSize.X, outputSize.Y, outputSize.Z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         this.probabilisticModel = probabilisticModel;
         this.patternSize = patternSize;
@@ -58,22 +58,23 @@ public class DiscreteModel {
         
         Debug.Log($"ERRORES {j}");
 
-        Debug.Log($"Model size: {new Vector3(inputModel.Size.x, inputModel.Size.y, inputModel.Size.z)}");
+        Debug.Log($"Model size: {new Vector3(inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z)}");
         Debug.Log("Model Ready!");
     }
 
     public void InitOverlappingModel(InputModel inputModel, int patternSize) {
-        var inputMatrix = new byte[inputModel.Size.x, inputModel.Size.y, inputModel.Size.z];
+        var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
         patterns = new List<byte[,,]>();
-        patternMatrix = new int[inputModel.Size.x - (patternSize - 1),
-            inputModel.Size.y - (patternSize - 1),
-            inputModel.Size.z - (patternSize - 1)];
+        patternMatrix = new int[inputModel.Size.X - (patternSize - 1),
+            inputModel.Size.Y - (patternSize - 1),
+            inputModel.Size.Z - (patternSize - 1)];
         probabilites = new Dictionary<int, double>();
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
 
         //Add "empty space" pattern.
         //patterns.Add(CreateEmptyPattern(patternSize));
+        //probabilites[0] = 0;
         
         for (var x = 0; x < patternMatrix.GetLength(0); x++) {
             for (var y = 0; y < patternMatrix.GetLength(1); y++) {
@@ -108,11 +109,11 @@ public class DiscreteModel {
     }
 
     public void InitSimpleModel(InputModel inputModel, int patternSize) {
-        var inputMatrix = new byte[inputModel.Size.x, inputModel.Size.y, inputModel.Size.z];
+        var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
         patterns = new List<byte[,,]>();
-        patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.x / patternSize) + 1),
-            (int) Math.Ceiling((double) (inputModel.Size.y / patternSize) + 1),
-            (int) Math.Ceiling((double) (inputModel.Size.z / patternSize) + 1)];
+        patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.X / patternSize) + 1),
+            (int) Math.Ceiling((double) (inputModel.Size.Y / patternSize) + 1),
+            (int) Math.Ceiling((double) (inputModel.Size.Z / patternSize) + 1)];
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
         
@@ -123,9 +124,9 @@ public class DiscreteModel {
         var j = 0;
         var k = 0;
 
-        for (var x = 0; x <= inputModel.Size.x - patternSize; x += patternSize) {
-            for (var y = 0; y <= inputModel.Size.y - patternSize; y += patternSize) {
-                for (var z = 0; z <= inputModel.Size.z - patternSize; z += patternSize) {
+        for (var x = 0; x <= inputModel.Size.X - patternSize; x += patternSize) {
+            for (var y = 0; y <= inputModel.Size.Y - patternSize; y += patternSize) {
+                for (var z = 0; z <= inputModel.Size.Z - patternSize; z += patternSize) {
                     var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
 
                     var index = patterns.ContainsPattern(currentPattern);
@@ -222,11 +223,11 @@ public class DiscreteModel {
     }
 
     private void InitOutputMatrix(Coord3D size) {
-        outputMatrix = new List<int>[size.x, size.y, size.z];
+        outputMatrix = new List<int>[size.X, size.Y, size.Z];
 
-        for (var x = 0; x < size.x; x++) {
-            for (var y = 0; y < size.y; y++) {
-                for (var z = 0; z < size.z; z++) {
+        for (var x = 0; x < size.X; x++) {
+            for (var y = 0; y < size.Y; y++) {
+                for (var z = 0; z < size.Z; z++) {
                     outputMatrix[x, y, z] = new List<int>();
 
                     for (var i = 0; i < patterns.Count; i++) {
@@ -256,7 +257,7 @@ public class DiscreteModel {
 
         //Pick a random node from the collapsible nodes.
         var nodeCoords = collapsableNodes[Rnd.Next(collapsableNodes.Count)];
-        var availableNodeStates = outputMatrix[nodeCoords.x, nodeCoords.y, nodeCoords.z];
+        var availableNodeStates = outputMatrix[nodeCoords.X, nodeCoords.Y, nodeCoords.Z];
 
         if (probabilisticModel) {
 
@@ -272,19 +273,19 @@ public class DiscreteModel {
             foreach (var availableNodeState in availableNodeStates) {
                 runningTotal += probabilites[availableNodeState];
                 if (runningTotal > rndNumb) {
-                    outputMatrix.SetValue(new List<int>() {availableNodeState}, nodeCoords.x, nodeCoords.y,
-                        nodeCoords.z);
+                    outputMatrix.SetValue(new List<int>() {availableNodeState}, nodeCoords.X, nodeCoords.Y,
+                        nodeCoords.Z);
                     break;
                 }
             }
         }
         else {
             //Collapse it to a random definite state.
-            outputMatrix.SetValue(new List<int>() { availableNodeStates[Rnd.Next(availableNodeStates.Count)] }, nodeCoords.x, nodeCoords.y, nodeCoords.z);
+            outputMatrix.SetValue(new List<int>() { availableNodeStates[Rnd.Next(availableNodeStates.Count)] }, nodeCoords.X, nodeCoords.Y, nodeCoords.Z);
         }
 
 
-        Propagate(nodeCoords.x, nodeCoords.y, nodeCoords.z);
+        Propagate(nodeCoords.X, nodeCoords.Y, nodeCoords.Z);
 
         numGen++;
     }
@@ -300,10 +301,10 @@ public class DiscreteModel {
         //Perform a Breadth-First grid traversal.
 		while (nodesToVisit.Any()) {
             var current = nodesToVisit.Dequeue();
-		    mapOfChanges.SetValue(true, current.x, current.y, current.z);
+		    mapOfChanges.SetValue(true, current.X, current.Y, current.Z);
 
             //Get the list of the allowed neighbours of the current node
-		    var nghbrsMaps = outputMatrix[current.x, current.y, current.z].Select(possibleElement => NeighboursMap[possibleElement]).ToList();
+		    var nghbrsMaps = outputMatrix[current.X, current.Y, current.Z].Select(possibleElement => NeighboursMap[possibleElement]).ToList();
 
 		    var allowedNghbrs = nghbrsMaps.SelectMany(dict => dict)
 		        .ToLookup(pair => pair.Key, pair => pair.Value)
@@ -314,24 +315,24 @@ public class DiscreteModel {
 		    //If it hasn't queue it up and mark it as visited, otherwise move on.
             foreach (var direction in Directions) {
                 if (!mapOfChanges.OutOfBounds(current.Add(direction)) &&
-                    !mapOfChanges[current.x + direction.x, current.y + direction.y, current.z + direction.z] &&
+                    !mapOfChanges[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z] &&
                     !outputMatrix.OutOfBounds(current.Add(direction))) {
 
                     //Eliminate neighbours that are not allowed from the output matrix
                     var allowedNghbrsInDirection = allowedNghbrs[direction].Distinct().ToList();
-                    outputMatrix[current.x + direction.x, current.y + direction.y, current.z + direction.z]
+                    outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z]
                         .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
 
                     //Check for contradictions
                     // TODO Add a backtrack recovery system to remedy the contradictions.
-                    if (outputMatrix[current.x + direction.x, current.y + direction.y, current.z + direction.z].Count == 0) {
+                    if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count == 0) {
                         contradiction = true;
                         return;
                     }
 
                     //Queue it up in order to spread the info to its neighbours and mark it as visited.
                     nodesToVisit.Enqueue(current.Add(direction));
-                    mapOfChanges.SetValue(true, current.x + direction.x, current.y + direction.y, current.z + direction.z);
+                    mapOfChanges.SetValue(true, current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z);
                 }
             }
         }
