@@ -367,15 +367,16 @@ public class DiscreteModel {
 
     public byte[,,] GetOutput() {
         var res = new byte[outputMatrix.GetLength(0) * patternSize, outputMatrix.GetLength(1) * patternSize, outputMatrix.GetLength(2) * patternSize];
-        for (var x = 0; x < outputMatrix.GetLength(0); x += patternSize) {
-            for (var y = 0; y < outputMatrix.GetLength(1); y += patternSize) {
-                for (var z = 0; z < outputMatrix.GetLength(2); z += patternSize) {
+        for (var x = 0; x < outputMatrix.GetLength(0); x++) {
+            for (var y = 0; y < outputMatrix.GetLength(1); y++) {
+                for (var z = 0; z < outputMatrix.GetLength(2); z++) {
 
                     var currentPattern = patterns[outputMatrix[x, y, z].First()];
                     for (var i = 0; i < currentPattern.GetLength(0); i++) {
                         for (var j = 0; j < currentPattern.GetLength(1); j++) {
                             for (var k = 0; k < currentPattern.GetLength(2); k++) {
-                                res[x + i, y + j, z + k] = currentPattern[i, j, k];
+                                res[(x * currentPattern.GetLength(0)) + i, (y * currentPattern.GetLength(1)) + j,
+                                    (z * currentPattern.GetLength(2)) + k] = currentPattern[i, j, k];
                             }
                         }
                     }
