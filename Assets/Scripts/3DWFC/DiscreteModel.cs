@@ -62,12 +62,45 @@ public class DiscreteModel {
         Debug.Log("Model Ready!");
     }
 
+    public void InitSimpleModel(InputModel inputModel, int patternSize) {
+        var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
+        patterns = new List<byte[,,]>();
+        patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.X / patternSize)),
+            (int) Math.Ceiling((double) (inputModel.Size.Y / patternSize)),
+            (int) Math.Ceiling((double) (inputModel.Size.Z / patternSize))];
+        probabilites = new Dictionary<int, double>();
+
+        inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
+        
+        //Add "empty space" pattern.
+        //patterns.Add(CreateEmptyPattern(patternSize));
+
+        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
+            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
+                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
+                    var currentPattern = GetCurrentPattern(inputMatrix, x * patternSize, y * patternSize, z * patternSize, patternSize);
+
+                    var index = patterns.ContainsPattern(currentPattern);
+                    if (index < 0) {
+                        patterns.Add(currentPattern);
+                        patternMatrix[x, y, z] = patterns.Count - 1;
+                        probabilites[patterns.Count - 1] = (double) 1 / patternMatrix.Length;
+                    }
+                    else {
+                        patternMatrix[x, y, z] = index;
+                        probabilites[index] += (double) 1 / patternMatrix.Length;
+                    }
+                }
+            }
+        }
+    }
+
     public void InitOverlappingModel(InputModel inputModel, int patternSize) {
         var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
         patterns = new List<byte[,,]>();
-        patternMatrix = new int[inputModel.Size.X - (patternSize - 1),
-            inputModel.Size.Y - (patternSize - 1),
-            inputModel.Size.Z - (patternSize - 1)];
+        patternMatrix = new int[inputModel.Size.X - patternSize + 1,
+            inputModel.Size.Y - patternSize + 1,
+            inputModel.Size.Z - patternSize + 1];
         probabilites = new Dictionary<int, double>();
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
@@ -106,49 +139,6 @@ public class DiscreteModel {
             }
         }
         return pattern;
-    }
-
-    public void InitSimpleModel(InputModel inputModel, int patternSize) {
-        var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
-        patterns = new List<byte[,,]>();
-        patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.X / patternSize)),
-            (int) Math.Ceiling((double) (inputModel.Size.Y / patternSize)),
-            (int) Math.Ceiling((double) (inputModel.Size.Z / patternSize))];
-        probabilites = new Dictionary<int, double>();
-
-        inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
-        
-        //Add "empty space" pattern.
-        //patterns.Add(CreateEmptyPattern(patternSize));
-
-        var i = 0;
-        var j = 0;
-        var k = 0;
-
-        for (var x = 0; x <= inputModel.Size.X - patternSize; x += patternSize) {
-            for (var y = 0; y <= inputModel.Size.Y - patternSize; y += patternSize) {
-                for (var z = 0; z <= inputModel.Size.Z - patternSize; z += patternSize) {
-                    var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
-
-                    var index = patterns.ContainsPattern(currentPattern);
-                    if (index < 0) {
-                        patterns.Add(currentPattern);
-                        patternMatrix[i, j, k] = patterns.Count - 1;
-                        probabilites[patterns.Count - 1] = (double) 1 / patternMatrix.Length;
-                    }
-                    else {
-                        patternMatrix[i, j, k] = index;
-                        probabilites[index] += (double) 1 / patternMatrix.Length;
-                    }
-
-                    i++;
-                }
-                i = 0;
-                j++;
-            }
-            j = 0;
-            k++;
-        }
     }
 
     private void DetectNeighbours() {
