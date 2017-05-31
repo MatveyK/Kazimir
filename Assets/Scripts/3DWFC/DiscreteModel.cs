@@ -114,6 +114,7 @@ public class DiscreteModel {
         patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.X / patternSize)),
             (int) Math.Ceiling((double) (inputModel.Size.Y / patternSize)),
             (int) Math.Ceiling((double) (inputModel.Size.Z / patternSize))];
+        probabilites = new Dictionary<int, double>();
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
         
@@ -133,9 +134,11 @@ public class DiscreteModel {
                     if (index < 0) {
                         patterns.Add(currentPattern);
                         patternMatrix[i, j, k] = patterns.Count - 1;
+                        probabilites[patterns.Count - 1] = (double) 1 / patternMatrix.Length;
                     }
                     else {
                         patternMatrix[i, j, k] = index;
+                        probabilites[index] += (double) 1 / patternMatrix.Length;
                     }
 
                     i++;
