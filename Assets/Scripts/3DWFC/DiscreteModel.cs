@@ -12,7 +12,7 @@ public class DiscreteModel {
 
     private static readonly Random Rnd = new Random();
 
-    private bool probabilisticModel;
+    private readonly bool probabilisticModel;
 
     private int[,,] patternMatrix;
     private List<byte[,,]> patterns;
@@ -21,7 +21,7 @@ public class DiscreteModel {
 
     private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
 
-    private bool[,,] mapOfChanges;
+    private readonly bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
 
     //Save these fields in case of reintialisation
@@ -316,6 +316,11 @@ public class DiscreteModel {
                     outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z]
                         .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
 
+                    if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count ==
+                        0) {
+                        outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Add(0);
+                    }
+                    
                     //Check for contradictions
                     // TODO Add a backtrack recovery system to remedy the contradictions.
                     if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count == 0) {
