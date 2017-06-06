@@ -74,6 +74,7 @@ public class DiscreteModel {
         
         //Add "empty space" pattern.
         //patterns.Add(CreateEmptyPattern(patternSize));
+        //probabilites[0] = 0;
 
         for (var x = 0; x < patternMatrix.GetLength(0); x++) {
             for (var y = 0; y < patternMatrix.GetLength(1); y++) {
@@ -185,14 +186,14 @@ public class DiscreteModel {
                 for (var z = 0; z < patternMatrix.GetLength(2); z++) {
                     var currentPattern = patternMatrix[x, y, z];
 
-                    if(x-1 >= 0) neighboursMap[currentPattern][Coord3D.Left].Add(patternMatrix[x-1, y ,z]);
-                    if (x + 1 < patternMatrix.GetLength(0)) neighboursMap[currentPattern][Coord3D.Right].Add(patternMatrix[x+1, y, z]);
+                    neighboursMap[currentPattern][Coord3D.Left].Add(x - 1 >= 0 ? patternMatrix[x - 1, y, z] : patternMatrix[patternMatrix.GetLength(0) - 1, y, z]);
+                    neighboursMap[currentPattern][Coord3D.Right].Add(x + 1 < patternMatrix.GetLength(0) ? patternMatrix[x + 1, y, z] : patternMatrix[0, y, z]);
 
-                    if(y-1 >= 0) neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, y-1, z]);
-                    if(y+1 < patternMatrix.GetLength(1)) neighboursMap[currentPattern][Coord3D.Up].Add(patternMatrix[x, y+1, z]);
+                    neighboursMap[currentPattern][Coord3D.Down].Add(y - 1 >= 0 ? patternMatrix[x, y - 1, z] : patternMatrix[x, patternMatrix.GetLength(1) - 1, z]);
+                    neighboursMap[currentPattern][Coord3D.Up].Add(y + 1 < patternMatrix.GetLength(1) ? patternMatrix[x, y + 1, z] : patternMatrix[x, 0, z]);
 
-                    if(z-1 >= 0) neighboursMap[currentPattern][Coord3D.Back].Add(patternMatrix[x, y, z-1]);
-                    if(z+1 < patternMatrix.GetLength(2)) neighboursMap[currentPattern][Coord3D.Forward].Add(patternMatrix[x, y, z+1]);
+                    neighboursMap[currentPattern][Coord3D.Back].Add(z - 1 >= 0 ? patternMatrix[x, y, z - 1] : patternMatrix[x, y, patternMatrix.GetLength(2) - 1]);
+                    neighboursMap[currentPattern][Coord3D.Forward].Add(z + 1 < patternMatrix.GetLength(2) ? patternMatrix[x, y, z + 1] : patternMatrix[x, y, 0]);
                 }
             }
         }
@@ -316,11 +317,6 @@ public class DiscreteModel {
                     outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z]
                         .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
 
-                    if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count ==
-                        0) {
-                        outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Add(0);
-                    }
-                    
                     //Check for contradictions
                     // TODO Add a backtrack recovery system to remedy the contradictions.
                     if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count == 0) {
