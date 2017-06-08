@@ -6,7 +6,7 @@ using Random = System.Random;
 
 public static class Extensions {
     
-    private static Random rng = new Random();
+    private static readonly Random rng = new Random();
 
     public static bool OutOfBounds<T>(this T[,,] array, Vector3 coords) {
         if (coords.x >= array.GetLowerBound(0) && coords.x <= array.GetUpperBound(0) &&
@@ -168,5 +168,14 @@ public static class Extensions {
             }
         }
         return res;
+    }
+
+    public static int GenerateRand(int mean, int stdDev) {
+        var u1 = 1.0 - rng.NextDouble();
+        var u2 = 1.0 - rng.NextDouble();
+
+        var randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2);
+
+        return (int) Math.Ceiling(mean + stdDev * randStdNormal);
     }
 }
