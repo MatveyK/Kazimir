@@ -40,7 +40,7 @@ public class DiscreteModel {
     private int numGen;
 
 
-    public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool probabilisticModel = true) {
+    public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool addNeighbours = false, bool probabilisticModel = true) {
         mapOfChanges = new bool[outputSize.X, outputSize.Y, outputSize.Z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         this.probabilisticModel = probabilisticModel;
@@ -56,7 +56,9 @@ public class DiscreteModel {
             InitSimpleModel(inputModel, patternSize);
         }
         InitNeighboursMap();
-        DetectNeighbours();
+        if (addNeighbours) {
+            DetectNeighbours();
+        }
         InitOutputMatrix(outputSize);
 
         States = new Stack<List<int>[,,]>();
