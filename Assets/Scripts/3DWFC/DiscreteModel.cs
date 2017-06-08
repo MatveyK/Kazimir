@@ -27,7 +27,6 @@ public class DiscreteModel {
     //Keep a list of states for backtracking
     private Stack<List<int>[,,]> States;
     private bool RollingBack = false;
-    private int NbRollbackSteps;
     private List<Coord3D> ChosenPoints;
     private int TotalRollbacks;
     private const int TOTAL_ROLLBACKS_ALLOWED = 50;
@@ -62,7 +61,6 @@ public class DiscreteModel {
         InitOutputMatrix(outputSize);
 
         States = new Stack<List<int>[,,]>();
-        NbRollbackSteps = 0;
         ChosenPoints = new List<Coord3D>();
         TotalRollbacks = 0;
         
@@ -378,9 +376,8 @@ public class DiscreteModel {
                     // TODO Add a backtrack recovery system to remedy the contradictions.
                     if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count == 0) {
                         try {
-                            NbRollbackSteps++;
                             ChosenPoints.Add(new Coord3D(x, y, z));
-                            RollbackState(NbRollbackSteps);
+                            RollbackState();
                             TotalRollbacks++;
                             return;
                         }
@@ -397,7 +394,6 @@ public class DiscreteModel {
             }
         }
 
-        NbRollbackSteps = 0;
         ChosenPoints.Clear();
         if (TotalRollbacks > TOTAL_ROLLBACKS_ALLOWED) {
             contradiction = true;
@@ -432,7 +428,6 @@ public class DiscreteModel {
         numGen = 0;
         
         States.Clear();
-        NbRollbackSteps = 0;
         ChosenPoints.Clear();
         TotalRollbacks = 0;
     }
@@ -479,14 +474,23 @@ public class DiscreteModel {
         return res;
     }
 
-    private void RollbackState(int nbSteps) {
+    private void RollbackState() {
         if(States.Count == 0) throw new InvalidOperationException();
-        
-        for (var i = 0; i < nbSteps - 1 && States.Count > 0; i++) {
-            States.Pop();
+
+        var mean = (int) Math.Ceiling((double) (States.Count * 2 / 3));
+        var variance = (int) States.Count - mean;
+
+        var stateIndex = Extensions.GenerateRand(mean, variance);
+
+        if (mean == 1 || stateIndex > States.Count) {
+            outputMatrix = States.Pop();
+        } else {
+            for (int i = 0; i < States.Count - stateIndex - 1; i++) {
+                States.Pop();
+            }
+            outputMatrix = States.Pop();
         }
 
-        outputMatrix = States.Pop();
         RollingBack = true;
     }
 
