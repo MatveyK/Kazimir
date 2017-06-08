@@ -23,6 +23,14 @@ public class DiscreteModel {
 
     private readonly bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
+    
+    //Keep a list of states for backtracking
+    private Stack<List<int>[,,]> States;
+    private bool RollingBack = false;
+    private int NbRollbackSteps;
+    private List<Coord3D> ChosenPoints;
+    private int TotalRollbacks;
+    private const int TOTAL_ROLLBACKS_ALLOWED = 50;
 
     //Save these fields in case of reintialisation
     private readonly Coord3D outputSize;
@@ -51,6 +59,11 @@ public class DiscreteModel {
         DetectNeighbours();
         InitOutputMatrix(outputSize);
 
+        States = new Stack<List<int>[,,]>();
+        NbRollbackSteps = 0;
+        ChosenPoints = new List<Coord3D>();
+        TotalRollbacks = 0;
+        
         var j = 0;
         for (int i = 0; i < patterns.Count; i++) {
             j += Directions.Count(direction => neighboursMap[i][direction].Count == 0);
@@ -244,10 +257,18 @@ public class DiscreteModel {
 
     public void Observe() {
 
-        // TODO Add distribution criteria to the cell state collapse
+        //Save the current state if we are not "rolling back"
+        if (!RollingBack) {
+            States.Push(outputMatrix.CloneMatrix());
+        } else {
+            RollingBack = false;
+        }
 
         //Build a list of nodes that have not been collapsed to a definite state.
         var collapsableNodes = GetCollapsableNodes();
+        
+        //Remove the previously picked state from the list of possible states in case of backtrack.
+        collapsableNodes.RemoveAll(x => ChosenPoints.Contains(x));
 
         //Pick a random node from the collapsible nodes.
         var nodeCoords = collapsableNodes[Rnd.Next(collapsableNodes.Count)];
@@ -256,7 +277,7 @@ public class DiscreteModel {
         if (probabilisticModel) {
 
             //Eliminate all duplicates from the list of possible states.
-            availableNodeStates = availableNodeStates.Distinct().ToList();
+            availableNodeStates = availableNodeStates.Distinct().ToList().Shuffle().ToList();
 
             //Choose a state according to the probability distribution of the states in the input model.
             double runningTotal = 0;
@@ -320,8 +341,17 @@ public class DiscreteModel {
                     //Check for contradictions
                     // TODO Add a backtrack recovery system to remedy the contradictions.
                     if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count == 0) {
-                        contradiction = true;
-                        return;
+                        try {
+                            NbRollbackSteps++;
+                            ChosenPoints.Add(new Coord3D(x, y, z));
+                            RollbackState(NbRollbackSteps);
+                            TotalRollbacks++;
+                            return;
+                        }
+                        catch (InvalidOperationException e) {
+                            contradiction = true;
+                            return;
+                        }
                     }
 
                     //Queue it up in order to spread the info to its neighbours and mark it as visited.
@@ -331,6 +361,13 @@ public class DiscreteModel {
             }
         }
 
+        NbRollbackSteps = 0;
+        ChosenPoints.Clear();
+        if (TotalRollbacks > TOTAL_ROLLBACKS_ALLOWED) {
+            contradiction = true;
+            return;
+        }
+        
         generationFinished = CheckIfFinished();
     }
 
@@ -357,6 +394,11 @@ public class DiscreteModel {
         contradiction = false;
         generationFinished = false;
         numGen = 0;
+        
+        States.Clear();
+        NbRollbackSteps = 0;
+        ChosenPoints.Clear();
+        TotalRollbacks = 0;
     }
 
     public byte[,,] GetOutput() {
@@ -399,6 +441,17 @@ public class DiscreteModel {
             }
         }
         return res;
+    }
+
+    private void RollbackState(int nbSteps) {
+        if(States.Count == 0) throw new InvalidOperationException();
+        
+        for (var i = 0; i < nbSteps - 1 && States.Count > 0; i++) {
+            States.Pop();
+        }
+
+        outputMatrix = States.Pop();
+        RollingBack = true;
     }
 
 

@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Random = System.Random;
 
 public static class Extensions {
+    
+    private static Random rng = new Random();
 
     public static bool OutOfBounds<T>(this T[,,] array, Vector3 coords) {
         if (coords.x >= array.GetLowerBound(0) && coords.x <= array.GetUpperBound(0) &&
@@ -34,6 +37,20 @@ public static class Extensions {
                 yield return element;
             }
         }
+    }
+
+    public static IEnumerable<T> Shuffle<T>(this IList<T> list) {
+        var res = list;
+        var n = res.Count;
+        while (n > 1) {
+            n--;
+            var k = rng.Next(n + 1);
+            var value = res[k];
+            res[k] = res[n];
+            res[n] = value;
+        }
+
+        return res;
     }
 
     public static void WriteString(this BinaryWriter writer, string str) {
@@ -135,5 +152,21 @@ public static class Extensions {
         }
 
         return true;
+    }
+
+    public static List<int>[,,] CloneMatrix(this List<int>[,,] matrix) {
+        var res = new List<int>[matrix.GetLength(0), matrix.GetLength(1), matrix.GetLength(2)];
+        
+        for (var x = 0; x < matrix.GetLength(0); x++) {
+            for (var y = 0; y < matrix.GetLength(1); y++) {
+                for (var z = 0; z < matrix.GetLength(2); z++) {
+                    res[x, y, z] = new List<int>();
+                    foreach (var value in matrix[x, y, z]) {
+                        res[x, y, z].Add(value);
+                    }
+                }
+            }
+        }
+        return res;
     }
 }
