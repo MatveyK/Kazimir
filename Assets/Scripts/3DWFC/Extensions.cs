@@ -170,7 +170,7 @@ public static class Extensions {
         return res;
     }
 
-    public static int GenerateRand(int mean, int stdDev) {
+    public static int GenerateNormalDistrVar(int mean, int stdDev) {
         var u1 = 1.0 - rng.NextDouble();
         var u2 = 1.0 - rng.NextDouble();
 

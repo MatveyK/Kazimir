@@ -2,7 +2,7 @@
 
 
 public class Demo : MonoBehaviour {
-    [SerializeField] private string voxFileName = "castle.vox";
+    [SerializeField] private string voxFileName = "castle";
 
     [SerializeField] private bool optimise = false;
     [SerializeField] private bool overlapping = true;
@@ -11,8 +11,8 @@ public class Demo : MonoBehaviour {
 
     private DiscreteModel model;
 
-    [SerializeField] private int patternSize = 3;
-    [SerializeField] Vector3 outputSize = new Vector3(10, 10, 10);
+    [SerializeField] private int patternSize = 2;
+    [SerializeField] Vector3 outputSize = new Vector3(5, 5, 5);
 
     private GameObject inputVoxelModelObj;
     private GameObject outputVoxelModelObj;
