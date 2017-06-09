@@ -52,7 +52,7 @@ public class VoxReaderWriter {
     }
 
     public static InputModel ReadVoxelFile(string fileName) {
-        return ReadVoxelStream(new BinaryReader(File.Open(fileName, FileMode.Open)));
+        return ReadVoxelStream(new BinaryReader(File.Open(fileName + ".vox", FileMode.Open)));
     }
 
     private static void WriteVoxelStream(BinaryWriter writer, int sizeX, int sizeY, int sizeZ, ICollection<Voxel> voxels) {
@@ -89,6 +89,6 @@ public class VoxReaderWriter {
     }
 
     public static void WriteVoxelFile(string fileName, int sizeX, int sizeY, int sizeZ, ICollection<Voxel> voxels) {
-        WriteVoxelStream(new BinaryWriter(File.Open(fileName, FileMode.Create)), sizeX, sizeY, sizeZ, voxels);
+        WriteVoxelStream(new BinaryWriter(File.Open(fileName + ".vox", FileMode.Create)), sizeX, sizeY, sizeZ, voxels);
     }
 }

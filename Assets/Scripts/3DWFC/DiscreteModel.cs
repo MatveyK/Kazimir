@@ -23,6 +23,13 @@ public class DiscreteModel {
 
     private readonly bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
+    
+    //Keep a list of states for backtracking
+    private Stack<List<int>[,,]> States;
+    private bool RollingBack = false;
+    private List<Coord3D> ChosenPoints;
+    private int TotalRollbacks;
+    private const int TOTAL_ROLLBACKS_ALLOWED = 50;
 
     //Save these fields in case of reintialisation
     private readonly Coord3D outputSize;
@@ -32,7 +39,7 @@ public class DiscreteModel {
     private int numGen;
 
 
-    public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool probabilisticModel = true) {
+    public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool addNeighbours = false, bool probabilisticModel = true) {
         mapOfChanges = new bool[outputSize.X, outputSize.Y, outputSize.Z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         this.probabilisticModel = probabilisticModel;
@@ -48,9 +55,15 @@ public class DiscreteModel {
             InitSimpleModel(inputModel, patternSize);
         }
         InitNeighboursMap();
-        DetectNeighbours();
+        if (addNeighbours) {
+            DetectNeighbours();
+        }
         InitOutputMatrix(outputSize);
 
+        States = new Stack<List<int>[,,]>();
+        ChosenPoints = new List<Coord3D>();
+        TotalRollbacks = 0;
+        
         var j = 0;
         for (int i = 0; i < patterns.Count; i++) {
             j += Directions.Count(direction => neighboursMap[i][direction].Count == 0);
@@ -73,8 +86,8 @@ public class DiscreteModel {
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
         
         //Add "empty space" pattern.
-        //patterns.Add(CreateEmptyPattern(patternSize));
-        //probabilites[0] = 0;
+        patterns.Add(CreateEmptyPattern(patternSize));
+        probabilites[0] = 0;
 
         for (var x = 0; x < patternMatrix.GetLength(0); x++) {
             for (var y = 0; y < patternMatrix.GetLength(1); y++) {
@@ -107,8 +120,8 @@ public class DiscreteModel {
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
 
         //Add "empty space" pattern.
-        //patterns.Add(CreateEmptyPattern(patternSize));
-        //probabilites[0] = 0;
+        patterns.Add(CreateEmptyPattern(patternSize));
+        probabilites[0] = 0;
         
         for (var x = 0; x < patternMatrix.GetLength(0); x++) {
             for (var y = 0; y < patternMatrix.GetLength(1); y++) {
@@ -186,14 +199,44 @@ public class DiscreteModel {
                 for (var z = 0; z < patternMatrix.GetLength(2); z++) {
                     var currentPattern = patternMatrix[x, y, z];
 
-                    neighboursMap[currentPattern][Coord3D.Left].Add(x - 1 >= 0 ? patternMatrix[x - 1, y, z] : patternMatrix[patternMatrix.GetLength(0) - 1, y, z]);
-                    neighboursMap[currentPattern][Coord3D.Right].Add(x + 1 < patternMatrix.GetLength(0) ? patternMatrix[x + 1, y, z] : patternMatrix[0, y, z]);
+                    if (x - 1 >= 0) {
+                        neighboursMap[currentPattern][Coord3D.Left].Add(patternMatrix[x - 1, y, z]);
+                    } else {
+                        neighboursMap[currentPattern][Coord3D.Left].Add(patternMatrix[patternMatrix.GetLength(0) - 1, y, z]);
+                        neighboursMap[currentPattern][Coord3D.Left].Add(0);
+                    }
+                    if (x + 1 < patternMatrix.GetLength(0)) {
+                        neighboursMap[currentPattern][Coord3D.Right].Add(patternMatrix[x + 1, y, z]);
+                    } else {
+                        neighboursMap[currentPattern][Coord3D.Right].Add(patternMatrix[0, y, z]);
+                        neighboursMap[currentPattern][Coord3D.Right].Add(0);
+                    }
 
-                    neighboursMap[currentPattern][Coord3D.Down].Add(y - 1 >= 0 ? patternMatrix[x, y - 1, z] : patternMatrix[x, patternMatrix.GetLength(1) - 1, z]);
-                    neighboursMap[currentPattern][Coord3D.Up].Add(y + 1 < patternMatrix.GetLength(1) ? patternMatrix[x, y + 1, z] : patternMatrix[x, 0, z]);
+                    if (y - 1 >= 0) {
+                        neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, y - 1, z]);
+                    } else {
+                        neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, patternMatrix.GetLength(1) - 1, z]);
+                        neighboursMap[currentPattern][Coord3D.Down].Add(0);
+                    }
+                    if (y + 1 < patternMatrix.GetLength(1)) {
+                        neighboursMap[currentPattern][Coord3D.Up].Add(patternMatrix[x, y + 1, z]);
+                    } else {
+                        neighboursMap[currentPattern][Coord3D.Up].Add(patternMatrix[x, 0, z]);
+                        neighboursMap[currentPattern][Coord3D.Up].Add(0);
+                    }
 
-                    neighboursMap[currentPattern][Coord3D.Back].Add(z - 1 >= 0 ? patternMatrix[x, y, z - 1] : patternMatrix[x, y, patternMatrix.GetLength(2) - 1]);
-                    neighboursMap[currentPattern][Coord3D.Forward].Add(z + 1 < patternMatrix.GetLength(2) ? patternMatrix[x, y, z + 1] : patternMatrix[x, y, 0]);
+                    if (z - 1 >= 0) {
+                        neighboursMap[currentPattern][Coord3D.Back].Add(patternMatrix[x, y, z - 1]);
+                    } else {
+                        neighboursMap[currentPattern][Coord3D.Back].Add(patternMatrix[x, y, patternMatrix.GetLength(2) - 1]);
+                        neighboursMap[currentPattern][Coord3D.Back].Add(0);
+                    }
+                    if (z + 1 < patternMatrix.GetLength(2)) {
+                        neighboursMap[currentPattern][Coord3D.Forward].Add(patternMatrix[x, y, z + 1]);
+                    } else {
+                        neighboursMap[currentPattern][Coord3D.Forward].Add(patternMatrix[x, y, 0]);
+                        neighboursMap[currentPattern][Coord3D.Forward].Add(0);
+                    }
                 }
             }
         }
@@ -244,19 +287,31 @@ public class DiscreteModel {
 
     public void Observe() {
 
-        // TODO Add distribution criteria to the cell state collapse
+        //Save the current state if we are not "rolling back"
+        if (!RollingBack) {
+            States.Push(outputMatrix.CloneMatrix());
+        } else {
+            RollingBack = false;
+        }
 
         //Build a list of nodes that have not been collapsed to a definite state.
         var collapsableNodes = GetCollapsableNodes();
+        
+        //Remove the previously picked state from the list of possible states in case of backtrack.
+        collapsableNodes.RemoveAll(x => ChosenPoints.Contains(x));
 
         //Pick a random node from the collapsible nodes.
+        if (collapsableNodes.Count == 0) {
+            contradiction = true;
+            return;
+        }
         var nodeCoords = collapsableNodes[Rnd.Next(collapsableNodes.Count)];
         var availableNodeStates = outputMatrix[nodeCoords.X, nodeCoords.Y, nodeCoords.Z];
 
         if (probabilisticModel) {
 
             //Eliminate all duplicates from the list of possible states.
-            availableNodeStates = availableNodeStates.Distinct().ToList();
+            availableNodeStates = availableNodeStates.Distinct().ToList().Shuffle().ToList();
 
             //Choose a state according to the probability distribution of the states in the input model.
             double runningTotal = 0;
@@ -320,8 +375,16 @@ public class DiscreteModel {
                     //Check for contradictions
                     // TODO Add a backtrack recovery system to remedy the contradictions.
                     if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count == 0) {
-                        contradiction = true;
-                        return;
+                        try {
+                            ChosenPoints.Add(new Coord3D(x, y, z));
+                            RollbackState();
+                            TotalRollbacks++;
+                            return;
+                        }
+                        catch (InvalidOperationException e) {
+                            contradiction = true;
+                            return;
+                        }
                     }
 
                     //Queue it up in order to spread the info to its neighbours and mark it as visited.
@@ -331,6 +394,12 @@ public class DiscreteModel {
             }
         }
 
+        ChosenPoints.Clear();
+        if (TotalRollbacks > TOTAL_ROLLBACKS_ALLOWED) {
+            contradiction = true;
+            return;
+        }
+        
         generationFinished = CheckIfFinished();
     }
 
@@ -357,6 +426,10 @@ public class DiscreteModel {
         contradiction = false;
         generationFinished = false;
         numGen = 0;
+        
+        States.Clear();
+        ChosenPoints.Clear();
+        TotalRollbacks = 0;
     }
 
     public byte[,,] GetOutput() {
@@ -399,6 +472,26 @@ public class DiscreteModel {
             }
         }
         return res;
+    }
+
+    private void RollbackState() {
+        if(States.Count == 0) throw new InvalidOperationException();
+
+        var mean = (int) Math.Ceiling((double) (States.Count * 2 / 3));
+        var variance = (int) States.Count - mean;
+
+        var stateIndex = Extensions.GenerateRand(mean, variance);
+
+        if (mean == 1 || stateIndex > States.Count) {
+            outputMatrix = States.Pop();
+        } else {
+            for (int i = 0; i < States.Count - stateIndex - 1; i++) {
+                States.Pop();
+            }
+            outputMatrix = States.Pop();
+        }
+
+        RollingBack = true;
     }
 
 
