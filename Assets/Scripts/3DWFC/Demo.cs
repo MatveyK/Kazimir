@@ -7,6 +7,7 @@ public class Demo : MonoBehaviour {
     [SerializeField] private bool optimise = false;
     [SerializeField] private bool overlapping = true;
     [SerializeField] private bool probabilisticModel = true;
+    [SerializeField] private bool periodic = true;
     [SerializeField] private bool addNeighbours = false;
 
     private DiscreteModel model;
@@ -30,7 +31,7 @@ public class Demo : MonoBehaviour {
         voxModel.transform.position = Vector3.zero;
 
         var outputSizeInCoord = new Coord3D((int) outputSize.x, (int) outputSize.y, (int) outputSize.z);
-        model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, overlapping, addNeighbours, probabilisticModel);
+        model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, overlapping, periodic, addNeighbours, probabilisticModel);
     }
 
 
