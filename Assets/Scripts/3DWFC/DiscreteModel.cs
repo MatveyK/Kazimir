@@ -19,7 +19,7 @@ public class DiscreteModel {
     private readonly int patternSize;
     private Dictionary<int, double> probabilites;
 
-    private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
+    private Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
 
     private readonly bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
@@ -50,13 +50,14 @@ public class DiscreteModel {
 
         if (overlapping) {
             InitOverlappingModel(inputModel, patternSize, periodic);
+            FindNeighbours();
         }
         else {
             InitSimpleModel(inputModel, patternSize);
-        }
-        InitNeighboursMap(periodic);
-        if (addNeighbours) {
-            DetectNeighbours();
+            InitNeighboursMap(periodic);
+            if (addNeighbours) {
+                DetectNeighbours();
+            }
         }
         InitOutputMatrix(outputSize);
 
@@ -109,44 +110,6 @@ public class DiscreteModel {
         }
     }
 
-    public void InitOverlappingModel(InputModel inputModel, int patternSize, bool periodic) {
-        var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
-        patterns = new List<byte[,,]>();
-        probabilites = new Dictionary<int, double>();
-        
-        if (periodic) {
-            patternMatrix = new int[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
-        } else {
-            patternMatrix = new int[inputModel.Size.X - patternSize + 1,
-                inputModel.Size.Y - patternSize + 1,
-                inputModel.Size.Z - patternSize + 1];
-        }
-
-        inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
-
-        //Add "empty space" pattern.
-        //patterns.Add(CreateEmptyPattern(patternSize));
-        //probabilites[0] = 0;
-        
-        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
-            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
-                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
-                    var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
-
-                    var index = patterns.ContainsPattern(currentPattern);
-                    if (index < 0) {
-                        patterns.Add(currentPattern);
-                        patternMatrix[x, y, z] = patterns.Count - 1;
-                        probabilites[patterns.Count - 1] = (double) 1 / patternMatrix.Length;
-                    }
-                    else {
-                        patternMatrix[x, y, z] = index;
-                        probabilites[index] += (double) 1 / patternMatrix.Length;
-                    }
-                }
-            }
-        }
-    }
 
     private static byte[,,] GetCurrentPattern(byte[,,] matrix, int x, int y, int z, int patternSize) {
         var pattern = new byte[patternSize, patternSize, patternSize];
@@ -503,6 +466,119 @@ public class DiscreteModel {
         }
 
         RollingBack = true;
+    }
+    
+    
+    //Overlapping model section ===============================================================
+
+    public void InitOverlappingModel(InputModel inputModel, int patternSize, bool periodic) {
+        var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
+        patterns = new List<byte[,,]>();
+        probabilites = new Dictionary<int, double>();
+        
+        if (periodic) {
+            patternMatrix = new int[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
+        } else {
+            patternMatrix = new int[inputModel.Size.X - patternSize + 1,
+                inputModel.Size.Y - patternSize + 1,
+                inputModel.Size.Z - patternSize + 1];
+        }
+
+        inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
+
+        
+        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
+            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
+                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
+                    var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
+
+                    var index = patterns.ContainsPattern(currentPattern);
+                    if (index < 0) {
+                        patterns.Add(currentPattern);
+                        patternMatrix[x, y, z] = patterns.Count - 1;
+                        probabilites[patterns.Count - 1] = (double) 1 / patternMatrix.Length;
+                    }
+                    else {
+                        patternMatrix[x, y, z] = index;
+                        probabilites[index] += (double) 1 / patternMatrix.Length;
+                    }
+                }
+            }
+        }
+    }
+
+    private void FindNeighbours() {
+        neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
+        
+        //Init the structure
+        for (var i = 0; i < patterns.Count; i++) {
+            neighboursMap[i] = new Dictionary<Coord3D, List<int>>();
+        }
+        
+        for (var i = 0; i < patterns.Count; i++) {
+            for (var j = 0; j < patterns.Count; j++) {
+                ConvolutePatterns(i, j);
+            }
+        }
+    }
+
+    private void ConvolutePatterns(int patternIndex, int otherPatternIndex) {
+        var pattern = patterns[patternIndex];
+        var otherPattern = patterns[otherPatternIndex];
+
+        var h = otherPattern;
+
+        for (var i = 0; i < (2 * patternSize - 1); i++) {
+            for (var j = 0; j < (2 * patternSize - 1); j++) {
+                for (var k = 0; k < (2 * patternSize - 1); k++) {
+                    
+                    neighboursMap[patternIndex][new Coord3D(i, j, k)] = new List<int>();
+
+                    var f = ConstructKernel(pattern, otherPattern, i, j, k);
+
+                    var matchingVoxels = 0;
+                    for (var x = 0; x < patternSize; x++) {
+                        for (var y = 0; y < patternSize; y++) {
+                            for (var z = 0; z < patternSize; z++) {
+
+                                if (f[x + i, y + j, z + k] == h[x, y, z]) {
+                                    matchingVoxels++;
+                                }
+                            } 
+                        }
+                    }
+
+                    if (matchingVoxels == Math.Pow(patternSize, 3)) {
+                        //add to the pattern matrix
+                        neighboursMap[patternIndex][new Coord3D(i, j, k)].Add(otherPatternIndex);
+                    }
+                }
+            }
+        }
+    }
+
+    private byte[,,] ConstructKernel(byte[,,] pattern1, byte[,,] pattern2, int offsetX, int offsetY, int offsetZ) {
+        var res = new byte[patternSize, patternSize, patternSize];
+
+        var kernelSize = patternSize + 2 * (patternSize - 1);
+        
+        for (var x = 0; x < patternSize; x++) {
+            for (var y = 0; y < patternSize; y++) {
+                for (var z = 0; z < patternSize; z++) {
+                    if ((x >= patternSize - 1 - offsetX && x < kernelSize - patternSize + 1 - offsetX) &&
+                        (y >= patternSize - 1 - offsetY && y < kernelSize - patternSize + 1 - offsetY) &&
+                        (z >= patternSize - 1 - offsetZ && z < kernelSize - patternSize + 1 - offsetZ)) {
+
+                        res[x, y, z] = pattern1[(patternSize - 1 - offsetX) % patternSize, (patternSize - 1 - offsetY) % patternSize, (patternSize - 1 - offsetZ) % patternSize];
+                        
+                    } else {
+                        res[x, y, z] = pattern2[x, y, z];
+                    }
+                }
+            }
+        }
+        
+        return res;
     }
 
 
