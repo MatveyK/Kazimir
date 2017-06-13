@@ -65,12 +65,6 @@ public class DiscreteModel {
         ChosenPoints = new List<Coord3D>();
         TotalRollbacks = 0;
         
-        var j = 0;
-        for (int i = 0; i < patterns.Count; i++) {
-            j += Directions.Count(direction => neighboursMap[i][direction].Count == 0);
-        }
-        
-        Debug.Log($"ERRORES {j}");
 
         Debug.Log($"Model size: {new Vector3(inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z)}");
         Debug.Log("Model Ready!");
@@ -557,22 +551,28 @@ public class DiscreteModel {
         }
     }
 
-    private byte[,,] ConstructKernel(byte[,,] pattern1, byte[,,] pattern2, int offsetX, int offsetY, int offsetZ) {
-        var res = new byte[patternSize, patternSize, patternSize];
-
+    private byte[,,] ConstructKernel(byte[,,] pattern1, byte[,,] pattern2, int originX, int originY, int originZ) {
         var kernelSize = patternSize + 2 * (patternSize - 1);
-        
-        for (var x = 0; x < patternSize; x++) {
-            for (var y = 0; y < patternSize; y++) {
-                for (var z = 0; z < patternSize; z++) {
-                    if ((x >= patternSize - 1 - offsetX && x < kernelSize - patternSize + 1 - offsetX) &&
-                        (y >= patternSize - 1 - offsetY && y < kernelSize - patternSize + 1 - offsetY) &&
-                        (z >= patternSize - 1 - offsetZ && z < kernelSize - patternSize + 1 - offsetZ)) {
+        var res = new byte[kernelSize, kernelSize, kernelSize];
 
-                        res[x, y, z] = pattern1[(patternSize - 1 - offsetX) % patternSize, (patternSize - 1 - offsetY) % patternSize, (patternSize - 1 - offsetZ) % patternSize];
+
+        for (var x = 0; x < kernelSize; x++) {
+            for (var y = 0; y < kernelSize; y++) {
+                for (var z = 0; z < kernelSize; z++) {
+
+                    if ((x >= originX && x < originX + patternSize) &&
+                        (y >= originY && y < originY + patternSize) &&
+                        (z >= originZ && z < originZ + patternSize)) {
+
+                        res[x, y, z] = pattern2[x - originX, y - originY, z - originZ];
                         
-                    } else {
-                        res[x, y, z] = pattern2[x, y, z];
+                    }
+                    
+                    if((x >= patternSize - 1 && x < kernelSize - patternSize + 1) &&
+                              (y >= patternSize - 1 && y < kernelSize - patternSize + 1) &&
+                              (z >= patternSize - 1 && z < kernelSize - patternSize + 1)) {
+
+                        res[x, y, z] = pattern1[x - (patternSize - 1), y - (patternSize - 1), z - (patternSize - 1)];
                     }
                 }
             }
