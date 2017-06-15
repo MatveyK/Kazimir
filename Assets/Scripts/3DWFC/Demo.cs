@@ -38,7 +38,7 @@ public class Demo : MonoBehaviour {
     private void Update() {
         if (Input.GetKeyDown("space")) {
             while (!model.GenerationFinished) {
-                model.Observe();
+                model.Observe2();
 
                 if (model.Contradiction) {
                     Debug.Log($"Generation Failed after {model.NumGen} iterations!");

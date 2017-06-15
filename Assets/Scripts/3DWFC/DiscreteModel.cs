@@ -20,6 +20,7 @@ public class DiscreteModel {
     private Dictionary<int, double> probabilites;
 
     private Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
+    private bool periodic;
 
     private readonly bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
@@ -42,6 +43,7 @@ public class DiscreteModel {
     public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool periodic = true, bool addNeighbours = false, bool probabilisticModel = true) {
         mapOfChanges = new bool[outputSize.X, outputSize.Y, outputSize.Z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
+        this.periodic = periodic;
         this.probabilisticModel = probabilisticModel;
         this.patternSize = patternSize;
         numGen = 0;
@@ -581,9 +583,105 @@ public class DiscreteModel {
         return res;
     }
 
+    public void Observe2() {
+
+        //Build a list of nodes that have not been collapsed into a definite state.
+        var collapsableNodes = GetCollapsableNodes();
+        
+        //Pick a random node from the collapsable nodes.
+        if (collapsableNodes.Count == 0) {
+            contradiction = true;
+            return;
+        }
+        var nodeCoords = collapsableNodes[Rnd.Next(collapsableNodes.Count)];
+        var availableNodeStates = outputMatrix[nodeCoords.X, nodeCoords.Y, nodeCoords.Z];
+        
+        //TODO Add the probabilistic model choice
+        
+        //Collapse into random definite state.
+        outputMatrix.SetValue(new List<int>() { availableNodeStates[Rnd.Next(availableNodeStates.Count)] }, nodeCoords.X, nodeCoords.Y, nodeCoords.Z);
+        
+        Propagate2(nodeCoords.X, nodeCoords.Y, nodeCoords.Z);
+
+        numGen++;
+    }
+
+    private void Propagate2(int x, int y, int z) {
+        //Reset the map that keeps track of the changes.
+        ReInitMapOfChanges();
+        
+        //Queue the first element.
+        var nodesToVisit = new Queue<Coord3D>();
+        nodesToVisit.Enqueue(new Coord3D(x, y, z));
+
+        while (nodesToVisit.Any()) {
+            var current = nodesToVisit.Dequeue();
+            mapOfChanges.SetValue(true, current.X, current.Y, current.Z);
+            
+            //Get the list of the allowed neighbours of the current node
+            var nghbrsMaps = outputMatrix[current.X, current.Y, current.Z]
+                .Select(possibleElem => NeighboursMap[possibleElem]).ToList();
+
+            var allowedNghbrs = nghbrsMaps.SelectMany(dict => dict)
+                .ToLookup(pair => pair.Key, pair => pair.Value)
+                .ToDictionary(group => group.Key, group => group.SelectMany(list => list).ToList());
+            
+            //For every possible direction check if the node has already been reached by the propagtion.
+            //If not, queue it up and mark it as visited, otherwise move on.
+            for (var dx = -patternSize + 1; dx < patternSize; dx++) {
+                for (var dy = -patternSize + 1; dy < patternSize; dy++) {
+                    for (var dz = -patternSize + 1; dz < patternSize; dz++) {
+                        
+                        var nodeToBeChanged = current.Add(dx, dy, dz);
+                        
+                        //Manage the periodic vs non-periodic cases.
+                        if ((mapOfChanges.OutOfBounds(nodeToBeChanged) ||
+                            mapOfChanges[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z]) &&
+                            !Periodic) {
+                            continue;
+                        }
+                        
+                        if (mapOfChanges.OutOfBounds(nodeToBeChanged) && Periodic) {
+                            nodeToBeChanged = new Coord3D(Mod(nodeToBeChanged.X, outputMatrix.GetLength(0)),
+                                Mod(nodeToBeChanged.Y, outputMatrix.GetLength(1)),
+                                Mod(nodeToBeChanged.Z, outputMatrix.GetLength(2)));
+                            
+                            if (mapOfChanges[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z] ||
+                                mapOfChanges.OutOfBounds(nodeToBeChanged)) {
+                                continue;
+                            }
+                        }
+
+                        //Eliminate all neighbours that are not allowed form the output matrix
+                        var propMatrixDirection =
+                            new Coord3D(patternSize - 1 - dx, patternSize - 1 - dy, patternSize - 1 - dz);
+                        var allowedNghbrsInDirection =
+                            allowedNghbrs[propMatrixDirection].Distinct().ToList();
+
+                        outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z]
+                            .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
+
+                        if (outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count == 0) {
+                            contradiction = true;
+                            return;
+                        }
+
+                        nodesToVisit.Enqueue(current.Add(dx, dy, dz));
+                        mapOfChanges.SetValue(true, nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z);
+                    }
+                }
+            }
+        }
+    }
+
+    public static int Mod(int n, int m) {
+        return ((n % m) + m) % m;
+    }
 
 
     public Dictionary<int, Dictionary<Coord3D, List<int>>> NeighboursMap => neighboursMap;
+    
+    public bool Periodic => periodic;
 
     public bool GenerationFinished => generationFinished;
 
