@@ -662,9 +662,9 @@ public class DiscreteModel {
                                 continue;
                             }
                         }
-                        
-                        //If this node has already been visited, then move on.
-                        if(mapOfChanges[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z]) continue;
+
+                        //Count the states before the propagation.
+                        var statesBefore = outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count;
 
                         //Eliminate all neighbours that are not allowed form the output matrix
                         //TODO here
@@ -680,9 +680,16 @@ public class DiscreteModel {
                             contradiction = true;
                             return;
                         }
+                        
+                        //Count the states after, if nbBefore !+ nbAfter queue it up.
+                        var statesAfter = outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count;
 
-                        nodesToVisit.Enqueue(nodeToBeChanged);
-                        mapOfChanges.SetValue(true, nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z);
+                        if (statesBefore != statesAfter) {
+                            
+                            nodesToVisit.Enqueue(nodeToBeChanged);
+                            mapOfChanges.SetValue(true, nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z);
+                        }
+
                     }
                 }
             }
