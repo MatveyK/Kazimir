@@ -51,7 +51,7 @@ public class Demo : MonoBehaviour {
             //Stop displaying the input model.
             inputVoxelModelObj.SetActive(false);
 
-            var output = model.GetOutput();
+            var output = model.GetOutput2();
 
             DisplayOutput(output);
         }

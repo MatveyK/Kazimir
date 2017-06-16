@@ -691,6 +691,20 @@ public class DiscreteModel {
         generationFinished = CheckIfFinished();
     }
 
+    public byte[,,] GetOutput2() {
+        //TODO here
+        var res = new byte[outputMatrix.GetLength(0), outputMatrix.GetLength(1), 1];
+        for (var x = 0; x < outputMatrix.GetLength(0); x++) {
+            for (var y = 0; y < outputMatrix.GetLength(1); y++) {
+                for (var z = 0; z < 1; z++) {
+                    var pattern = outputMatrix[x, y, z].First();
+                    res[x, y, z] = patterns[pattern][0,0,0];
+                }
+            }
+        }
+        return res;
+    }
+
     public static int Mod(int n, int m) {
         return ((n % m) + m) % m;
     }
