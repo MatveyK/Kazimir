@@ -506,9 +506,17 @@ public class DiscreteModel {
     private void FindNeighbours() {
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
         
+        //TODO here
         //Init the structure
         for (var i = 0; i < patterns.Count; i++) {
             neighboursMap[i] = new Dictionary<Coord3D, List<int>>();
+            for (var j = 0; j < (2 * patternSize - 1); j++) {
+                for (var k = 0; k < (2 * patternSize - 1); k++) {
+                    for (var l = 0; l < 1; l++) {
+                        neighboursMap[i][new Coord3D(j, k, l)] = new List<int>();
+                    }
+                }
+            }
         }
         
         for (var i = 0; i < patterns.Count; i++) {
@@ -524,18 +532,17 @@ public class DiscreteModel {
 
         var h = otherPattern;
 
+        //TODO here
         for (var i = 0; i < (2 * patternSize - 1); i++) {
             for (var j = 0; j < (2 * patternSize - 1); j++) {
-                for (var k = 0; k < (2 * patternSize - 1); k++) {
+                for (var k = 0; k < 1; k++) {
                     
-                    neighboursMap[patternIndex][new Coord3D(i, j, k)] = new List<int>();
-
                     var f = ConstructKernel(pattern, otherPattern, i, j, k);
 
                     var matchingVoxels = 0;
                     for (var x = 0; x < patternSize; x++) {
                         for (var y = 0; y < patternSize; y++) {
-                            for (var z = 0; z < patternSize; z++) {
+                            for (var z = 0; z < 1; z++) {
 
                                 if (f[x + i, y + j, z + k] == h[x, y, z]) {
                                     matchingVoxels++;
@@ -544,7 +551,8 @@ public class DiscreteModel {
                         }
                     }
 
-                    if (matchingVoxels == Math.Pow(patternSize, 3)) {
+                    //TODO here
+                    if (matchingVoxels == Math.Pow(patternSize, 2)) {
                         //add to the pattern matrix
                         neighboursMap[patternIndex][new Coord3D(i, j, k)].Add(otherPatternIndex);
                     }
@@ -555,26 +563,28 @@ public class DiscreteModel {
 
     private byte[,,] ConstructKernel(byte[,,] pattern1, byte[,,] pattern2, int originX, int originY, int originZ) {
         var kernelSize = patternSize + 2 * (patternSize - 1);
-        var res = new byte[kernelSize, kernelSize, kernelSize];
+        //TODO here
+        var res = new byte[kernelSize, kernelSize, 1];
 
 
+        //TODO here
         for (var x = 0; x < kernelSize; x++) {
             for (var y = 0; y < kernelSize; y++) {
-                for (var z = 0; z < kernelSize; z++) {
+                for (var z = 0; z < 1; z++) {
 
+                    //TODO here
                     if ((x >= originX && x < originX + patternSize) &&
-                        (y >= originY && y < originY + patternSize) &&
-                        (z >= originZ && z < originZ + patternSize)) {
+                        (y >= originY && y < originY + patternSize)) {
 
                         res[x, y, z] = pattern2[x - originX, y - originY, z - originZ];
                         
                     }
                     
+                    //TODO here
                     if((x >= patternSize - 1 && x < kernelSize - patternSize + 1) &&
-                              (y >= patternSize - 1 && y < kernelSize - patternSize + 1) &&
-                              (z >= patternSize - 1 && z < kernelSize - patternSize + 1)) {
+                              (y >= patternSize - 1 && y < kernelSize - patternSize + 1)) {
 
-                        res[x, y, z] = pattern1[x - (patternSize - 1), y - (patternSize - 1), z - (patternSize - 1)];
+                        res[x, y, z] = pattern1[x - (patternSize - 1), y - (patternSize - 1), 0];
                     }
                 }
             }
@@ -628,9 +638,10 @@ public class DiscreteModel {
             
             //For every possible direction check if the node has already been reached by the propagtion.
             //If not, queue it up and mark it as visited, otherwise move on.
+            //TODO here
             for (var dx = -patternSize + 1; dx < patternSize; dx++) {
                 for (var dy = -patternSize + 1; dy < patternSize; dy++) {
-                    for (var dz = -patternSize + 1; dz < patternSize; dz++) {
+                    for (var dz = 0; dz < 1; dz++) {
                         
                         var nodeToBeChanged = current.Add(dx, dy, dz);
                         
@@ -651,10 +662,14 @@ public class DiscreteModel {
                                 continue;
                             }
                         }
+                        
+                        //If this node has already been visited, then move on.
+                        if(mapOfChanges[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z]) continue;
 
                         //Eliminate all neighbours that are not allowed form the output matrix
+                        //TODO here
                         var propMatrixDirection =
-                            new Coord3D(patternSize - 1 - dx, patternSize - 1 - dy, patternSize - 1 - dz);
+                            new Coord3D(patternSize - 1 - dx, patternSize - 1 - dy, 0);
                         var allowedNghbrsInDirection =
                             allowedNghbrs[propMatrixDirection].Distinct().ToList();
 
@@ -666,12 +681,14 @@ public class DiscreteModel {
                             return;
                         }
 
-                        nodesToVisit.Enqueue(current.Add(dx, dy, dz));
+                        nodesToVisit.Enqueue(nodeToBeChanged);
                         mapOfChanges.SetValue(true, nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z);
                     }
                 }
             }
         }
+        
+        generationFinished = CheckIfFinished();
     }
 
     public static int Mod(int n, int m) {
