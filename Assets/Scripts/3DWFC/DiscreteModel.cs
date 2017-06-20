@@ -621,7 +621,6 @@ public class DiscreteModel {
 
         while (nodesToVisit.Any()) {
             var current = nodesToVisit.Dequeue();
-            mapOfChanges.SetValue(true, current.X, current.Y, current.Z);
             
             //Get the list of the allowed neighbours of the current node
             var nghbrsMaps = outputMatrix[current.X, current.Y, current.Z]
@@ -640,19 +639,16 @@ public class DiscreteModel {
                         var nodeToBeChanged = current.Add(dx, dy, dz);
                         
                         //Manage the periodic vs non-periodic cases.
-                        if ((mapOfChanges.OutOfBounds(nodeToBeChanged) ||
-                            mapOfChanges[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z]) &&
-                            !Periodic) {
+                        if (outputMatrix.OutOfBounds(nodeToBeChanged) && !Periodic) {
                             continue;
                         }
                         
-                        if (mapOfChanges.OutOfBounds(nodeToBeChanged) && Periodic) {
+                        if (outputMatrix.OutOfBounds(nodeToBeChanged) && Periodic) {
                             nodeToBeChanged = new Coord3D(Mod(nodeToBeChanged.X, outputMatrix.GetLength(0)),
                                 Mod(nodeToBeChanged.Y, outputMatrix.GetLength(1)),
                                 Mod(nodeToBeChanged.Z, outputMatrix.GetLength(2)));
                             
-                            if (mapOfChanges[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z] ||
-                                mapOfChanges.OutOfBounds(nodeToBeChanged)) {
+                            if (mapOfChanges.OutOfBounds(nodeToBeChanged)) {
                                 continue;
                             }
                         }
@@ -674,13 +670,14 @@ public class DiscreteModel {
                             return;
                         }
                         
-                        //Count the states after, if nbBefore !+ nbAfter queue it up.
+                        //Count the states after, if nbBefore != nbAfter queue it up.
                         var statesAfter = outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count;
 
                         if (statesBefore != statesAfter) {
-                            
-                            nodesToVisit.Enqueue(nodeToBeChanged);
-                            mapOfChanges.SetValue(true, nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z);
+
+                            if (!nodesToVisit.Contains(nodeToBeChanged)) {
+                                nodesToVisit.Enqueue(nodeToBeChanged);
+                            }
                         }
 
                     }
