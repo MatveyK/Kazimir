@@ -15,6 +15,8 @@ public class Demo : MonoBehaviour {
     [SerializeField] private int patternSize = 2;
     [SerializeField] Vector3 outputSize = new Vector3(5, 5, 5);
 
+    [SerializeField] private string outVoxFileName = "test";
+
     private GameObject inputVoxelModelObj;
     private GameObject outputVoxelModelObj;
 
@@ -61,6 +63,13 @@ public class Demo : MonoBehaviour {
             Destroy(outputVoxelModelObj);
             
             Debug.Log("Model cleared!");
+        }
+        //Write output to .vox format
+        if (Input.GetKeyDown("w")) {
+            var rawOutput = model.GetOutput2();
+            var voxels = VoxReaderWriter.TransformOutputToVox(rawOutput);
+            VoxReaderWriter.WriteVoxelFile(outVoxFileName, rawOutput.GetLength(0), rawOutput.GetLength(1), rawOutput.GetLength(2), voxels);
+            Debug.Log($"Model written to {outVoxFileName}.vox !");
         }
     }
 
