@@ -601,10 +601,30 @@ public class DiscreteModel {
         var nodeCoords = collapsableNodes[Rnd.Next(collapsableNodes.Count)];
         var availableNodeStates = outputMatrix[nodeCoords.X, nodeCoords.Y, nodeCoords.Z];
         
-        //TODO Add the probabilistic model choice
+        if (probabilisticModel) {
+
+            //Eliminate all duplicates from the list of possible states.
+            availableNodeStates = availableNodeStates.Distinct().ToList().Shuffle().ToList();
+
+            //Choose a state according to the probability distribution of the states in the input model.
+            double runningTotal = 0;
+            var totalProb = probabilites.Select(x => x)
+                .Where(x => availableNodeStates.Contains(x.Key))
+                .Sum(x => x.Value);
+            var rndNumb = Rnd.NextDouble() * totalProb;
+            foreach (var availableNodeState in availableNodeStates) {
+                runningTotal += probabilites[availableNodeState];
+                if (runningTotal > rndNumb) {
+                    outputMatrix.SetValue(new List<int>() {availableNodeState}, nodeCoords.X, nodeCoords.Y,
+                        nodeCoords.Z);
+                    break;
+                }
+            }
+        } else {
+            //Collapse into random definite state.
+            outputMatrix.SetValue(new List<int>() { availableNodeStates[Rnd.Next(availableNodeStates.Count)] }, nodeCoords.X, nodeCoords.Y, nodeCoords.Z);
+        }
         
-        //Collapse into random definite state.
-        outputMatrix.SetValue(new List<int>() { availableNodeStates[Rnd.Next(availableNodeStates.Count)] }, nodeCoords.X, nodeCoords.Y, nodeCoords.Z);
         
         Propagate2(nodeCoords.X, nodeCoords.Y, nodeCoords.Z);
 
