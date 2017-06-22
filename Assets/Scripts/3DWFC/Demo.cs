@@ -2,17 +2,20 @@
 
 
 public class Demo : MonoBehaviour {
-    [SerializeField] private string voxFileName = "castle.vox";
+    [SerializeField] private string voxFileName = "castle";
 
     [SerializeField] private bool optimise = false;
     [SerializeField] private bool overlapping = true;
     [SerializeField] private bool probabilisticModel = true;
+    [SerializeField] private bool periodic = true;
     [SerializeField] private bool addNeighbours = false;
 
     private DiscreteModel model;
 
-    [SerializeField] private int patternSize = 3;
-    [SerializeField] Vector3 outputSize = new Vector3(10, 10, 10);
+    [SerializeField] private int patternSize = 2;
+    [SerializeField] Vector3 outputSize = new Vector3(5, 5, 5);
+
+    [SerializeField] private string outVoxFileName = "test";
 
     private GameObject inputVoxelModelObj;
     private GameObject outputVoxelModelObj;
@@ -30,7 +33,7 @@ public class Demo : MonoBehaviour {
         voxModel.transform.position = Vector3.zero;
 
         var outputSizeInCoord = new Coord3D((int) outputSize.x, (int) outputSize.y, (int) outputSize.z);
-        model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, overlapping, addNeighbours, probabilisticModel);
+        model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, overlapping, periodic, addNeighbours, probabilisticModel);
     }
 
 
@@ -60,6 +63,13 @@ public class Demo : MonoBehaviour {
             Destroy(outputVoxelModelObj);
             
             Debug.Log("Model cleared!");
+        }
+        //Write output to .vox format
+        if (Input.GetKeyDown("w")) {
+            var rawOutput = model.GetOutput();
+            var voxels = VoxReaderWriter.TransformOutputToVox(rawOutput);
+            VoxReaderWriter.WriteVoxelFile(outVoxFileName, rawOutput.GetLength(0), rawOutput.GetLength(1), rawOutput.GetLength(2), voxels);
+            Debug.Log($"Model written to {outVoxFileName}.vox !");
         }
     }
 

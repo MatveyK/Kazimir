@@ -91,4 +91,18 @@ public class VoxReaderWriter {
     public static void WriteVoxelFile(string fileName, int sizeX, int sizeY, int sizeZ, ICollection<Voxel> voxels) {
         WriteVoxelStream(new BinaryWriter(File.Open(fileName + ".vox", FileMode.Create)), sizeX, sizeY, sizeZ, voxels);
     }
+
+    public static List<Voxel> TransformOutputToVox(byte[,,] rawOutput) {
+        var res = new List<Voxel>();
+        for (int x = 0; x < rawOutput.GetLength(0); x++) {
+            for (int y = 0; y < rawOutput.GetLength(1); y++) {
+                for (int z = 0; z < rawOutput.GetLength(2); z++) {
+                    if(rawOutput[x, y, z] == 0) continue;
+                    var voxel = new Voxel(x, y, z, rawOutput[x,y,z]);
+                    res.Add(voxel);
+                }
+            }
+        }
+        return res;
+    }
 }

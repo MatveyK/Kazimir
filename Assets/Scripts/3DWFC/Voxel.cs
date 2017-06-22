@@ -15,4 +15,11 @@ public struct Voxel {
 
         Color = stream.ReadByte();
     }
+
+    public Voxel(int x, int y, int z, byte color) {
+        X = (byte) x;
+        Y = (byte) y;
+        Z = (byte) z;
+        Color = color;
+    }
 }

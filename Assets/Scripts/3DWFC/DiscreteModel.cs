@@ -19,7 +19,8 @@ public class DiscreteModel {
     private readonly int patternSize;
     private Dictionary<int, double> probabilites;
 
-    private readonly Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
+    private Dictionary<int, Dictionary<Coord3D, List<int>>> neighboursMap;
+    private bool periodic;
 
     private readonly bool[,,] mapOfChanges;
     private List<int>[,,] outputMatrix;
@@ -39,9 +40,10 @@ public class DiscreteModel {
     private int numGen;
 
 
-    public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool addNeighbours = false, bool probabilisticModel = true) {
+    public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool periodic = true, bool addNeighbours = false, bool probabilisticModel = true) {
         mapOfChanges = new bool[outputSize.X, outputSize.Y, outputSize.Z];
         neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
+        this.periodic = periodic;
         this.probabilisticModel = probabilisticModel;
         this.patternSize = patternSize;
         numGen = 0;
@@ -49,14 +51,15 @@ public class DiscreteModel {
         this.outputSize = outputSize;
 
         if (overlapping) {
-            InitOverlappingModel(inputModel, patternSize);
+            InitOverlappingModel(inputModel, patternSize, periodic);
+            FindNeighbours();
         }
         else {
             InitSimpleModel(inputModel, patternSize);
-        }
-        InitNeighboursMap();
-        if (addNeighbours) {
-            DetectNeighbours();
+            InitNeighboursMap(periodic);
+            if (addNeighbours) {
+                DetectNeighbours();
+            }
         }
         InitOutputMatrix(outputSize);
 
@@ -64,12 +67,6 @@ public class DiscreteModel {
         ChosenPoints = new List<Coord3D>();
         TotalRollbacks = 0;
         
-        var j = 0;
-        for (int i = 0; i < patterns.Count; i++) {
-            j += Directions.Count(direction => neighboursMap[i][direction].Count == 0);
-        }
-        
-        Debug.Log($"ERRORES {j}");
 
         Debug.Log($"Model size: {new Vector3(inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z)}");
         Debug.Log("Model Ready!");
@@ -86,8 +83,8 @@ public class DiscreteModel {
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
         
         //Add "empty space" pattern.
-        patterns.Add(CreateEmptyPattern(patternSize));
-        probabilites[0] = 0;
+        //patterns.Add(CreateEmptyPattern(patternSize));
+        //probabilites[0] = 0;
 
         for (var x = 0; x < patternMatrix.GetLength(0); x++) {
             for (var y = 0; y < patternMatrix.GetLength(1); y++) {
@@ -109,52 +106,101 @@ public class DiscreteModel {
         }
     }
 
-    public void InitOverlappingModel(InputModel inputModel, int patternSize) {
-        var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
-        patterns = new List<byte[,,]>();
-        patternMatrix = new int[inputModel.Size.X - patternSize + 1,
-            inputModel.Size.Y - patternSize + 1,
-            inputModel.Size.Z - patternSize + 1];
-        probabilites = new Dictionary<int, double>();
-
-        inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
-
-        //Add "empty space" pattern.
-        patterns.Add(CreateEmptyPattern(patternSize));
-        probabilites[0] = 0;
-        
-        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
-            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
-                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
-                    var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
-
-                    var index = patterns.ContainsPattern(currentPattern);
-                    if (index < 0) {
-                        patterns.Add(currentPattern);
-                        patternMatrix[x, y, z] = patterns.Count - 1;
-                        probabilites[patterns.Count - 1] = (double) 1 / patternMatrix.Length;
-                    }
-                    else {
-                        patternMatrix[x, y, z] = index;
-                        probabilites[index] += (double) 1 / patternMatrix.Length;
-                    }
-                }
-            }
-        }
-    }
 
     private static byte[,,] GetCurrentPattern(byte[,,] matrix, int x, int y, int z, int patternSize) {
         var pattern = new byte[patternSize, patternSize, patternSize];
         for (var i = x; i < x + patternSize; i++) {
             for (var j = y; j < y + patternSize; j++) {
                 for (var k = z; k < z + patternSize; k++) {
-                    pattern[i - x, j - y, k - z] = matrix[i, j, k];
+                    pattern[i - x, j - y, k - z] = matrix[i % matrix.GetLength(0), j % matrix.GetLength(1), k % matrix.GetLength(2)];
                 }
             }
         }
         return pattern;
     }
 
+    private void InitNeighboursMap(bool periodic) {
+        //Init the data structure.
+        for (var i = 0; i < patterns.Count; i++) {
+            neighboursMap[i] = new Dictionary<Coord3D, List<int>>();
+
+            foreach (var direction in Directions) {
+                neighboursMap[i][direction] = new List<int>();
+            }
+        }
+
+        //Populate the data structure.
+        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
+            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
+                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
+                    var currentPattern = patternMatrix[x, y, z];
+
+                    if (x - 1 >= 0) {
+                        neighboursMap[currentPattern][Coord3D.Left].Add(patternMatrix[x - 1, y, z]);
+                    } else {
+                        if (periodic) {
+                            neighboursMap[currentPattern][Coord3D.Left].Add(patternMatrix[patternMatrix.GetLength(0) - 1, y, z]);
+                        }
+                    }
+                    if (x + 1 < patternMatrix.GetLength(0)) {
+                        neighboursMap[currentPattern][Coord3D.Right].Add(patternMatrix[x + 1, y, z]);
+                    } else {
+                        if (periodic) {
+                            neighboursMap[currentPattern][Coord3D.Right].Add(patternMatrix[0, y, z]);
+                        }
+                    }
+
+                    if (y - 1 >= 0) {
+                        neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, y - 1, z]);
+                    } else {
+                        if (periodic) {
+                            neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, patternMatrix.GetLength(1) - 1, z]);
+                        }
+                    }
+                    if (y + 1 < patternMatrix.GetLength(1)) {
+                        neighboursMap[currentPattern][Coord3D.Up].Add(patternMatrix[x, y + 1, z]);
+                    } else {
+                        if (periodic) {
+                            neighboursMap[currentPattern][Coord3D.Up].Add(patternMatrix[x, 0, z]);
+                        }
+                    }
+
+                    if (z - 1 >= 0) {
+                        neighboursMap[currentPattern][Coord3D.Back].Add(patternMatrix[x, y, z - 1]);
+                    } else {
+                        if (periodic) {
+                            neighboursMap[currentPattern][Coord3D.Back].Add(patternMatrix[x, y, patternMatrix.GetLength(2) - 1]);
+                        }
+                    }
+                    if (z + 1 < patternMatrix.GetLength(2)) {
+                        neighboursMap[currentPattern][Coord3D.Forward].Add(patternMatrix[x, y, z + 1]);
+                    } else {
+                        if (periodic) {
+                            neighboursMap[currentPattern][Coord3D.Forward].Add(patternMatrix[x, y, 0]);
+                        }
+                    }
+                }
+            }
+        }
+        
+        //Eliminate duplicates in the neighbours map.
+        for (var i = 0; i < patterns.Count; i++) {
+            foreach (var direction in Directions) {
+                neighboursMap[i][direction] = neighboursMap[i][direction].Distinct().ToList();
+            }
+        }
+        
+        //Add the empty space in case a pattern has no neighbour.
+        /*
+        for (var i = 0; i < patterns.Count; i++) {
+            foreach (var direction in Directions) {
+                if(neighboursMap[i][direction].Count == 0) 
+                    neighboursMap[i][direction].Add(0);
+            }
+        }
+        */
+    }
+    
     private void DetectNeighbours() {
         foreach (var pattern in patternMatrix) {
             foreach (var otherPattern in patternMatrix) {
@@ -181,82 +227,6 @@ public class DiscreteModel {
             neighboursMap[pattern][Coord3D.Back].Add(otherPattern);
         if(patternStruct.FitsPattern(otherPatternStruct, Coord3D.Forward) && !neighboursMap[pattern][Coord3D.Forward].Contains(otherPattern)) 
             neighboursMap[pattern][Coord3D.Forward].Add(otherPattern);
-    }
-
-    private void InitNeighboursMap() {
-        //Init the data structure.
-        for (var i = 0; i < patterns.Count; i++) {
-            neighboursMap[i] = new Dictionary<Coord3D, List<int>>();
-
-            foreach (var direction in Directions) {
-                neighboursMap[i][direction] = new List<int>();
-            }
-        }
-
-        //Populate the data structure.
-        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
-            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
-                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
-                    var currentPattern = patternMatrix[x, y, z];
-
-                    if (x - 1 >= 0) {
-                        neighboursMap[currentPattern][Coord3D.Left].Add(patternMatrix[x - 1, y, z]);
-                    } else {
-                        neighboursMap[currentPattern][Coord3D.Left].Add(patternMatrix[patternMatrix.GetLength(0) - 1, y, z]);
-                        neighboursMap[currentPattern][Coord3D.Left].Add(0);
-                    }
-                    if (x + 1 < patternMatrix.GetLength(0)) {
-                        neighboursMap[currentPattern][Coord3D.Right].Add(patternMatrix[x + 1, y, z]);
-                    } else {
-                        neighboursMap[currentPattern][Coord3D.Right].Add(patternMatrix[0, y, z]);
-                        neighboursMap[currentPattern][Coord3D.Right].Add(0);
-                    }
-
-                    if (y - 1 >= 0) {
-                        neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, y - 1, z]);
-                    } else {
-                        neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, patternMatrix.GetLength(1) - 1, z]);
-                        neighboursMap[currentPattern][Coord3D.Down].Add(0);
-                    }
-                    if (y + 1 < patternMatrix.GetLength(1)) {
-                        neighboursMap[currentPattern][Coord3D.Up].Add(patternMatrix[x, y + 1, z]);
-                    } else {
-                        neighboursMap[currentPattern][Coord3D.Up].Add(patternMatrix[x, 0, z]);
-                        neighboursMap[currentPattern][Coord3D.Up].Add(0);
-                    }
-
-                    if (z - 1 >= 0) {
-                        neighboursMap[currentPattern][Coord3D.Back].Add(patternMatrix[x, y, z - 1]);
-                    } else {
-                        neighboursMap[currentPattern][Coord3D.Back].Add(patternMatrix[x, y, patternMatrix.GetLength(2) - 1]);
-                        neighboursMap[currentPattern][Coord3D.Back].Add(0);
-                    }
-                    if (z + 1 < patternMatrix.GetLength(2)) {
-                        neighboursMap[currentPattern][Coord3D.Forward].Add(patternMatrix[x, y, z + 1]);
-                    } else {
-                        neighboursMap[currentPattern][Coord3D.Forward].Add(patternMatrix[x, y, 0]);
-                        neighboursMap[currentPattern][Coord3D.Forward].Add(0);
-                    }
-                }
-            }
-        }
-        
-        //Eliminate duplicates in the neighbours map.
-        for (var i = 0; i < patterns.Count; i++) {
-            foreach (var direction in Directions) {
-                neighboursMap[i][direction] = neighboursMap[i][direction].Distinct().ToList();
-            }
-        }
-        
-        //Add the empty space in case a pattern has no neighbour.
-        /*
-        for (var i = 0; i < patterns.Count; i++) {
-            foreach (var direction in Directions) {
-                if(neighboursMap[i][direction].Count == 0) 
-                    neighboursMap[i][direction].Add(0);
-            }
-        }
-        */
     }
 
     private void InitOutputMatrix(Coord3D size) {
@@ -480,7 +450,7 @@ public class DiscreteModel {
         var mean = (int) Math.Ceiling((double) (States.Count * 2 / 3));
         var variance = (int) States.Count - mean;
 
-        var stateIndex = Extensions.GenerateRand(mean, variance);
+        var stateIndex = Extensions.GenerateNormalDistrVar(mean, variance);
 
         if (mean == 1 || stateIndex > States.Count) {
             outputMatrix = States.Pop();
@@ -493,10 +463,272 @@ public class DiscreteModel {
 
         RollingBack = true;
     }
+    
+    
+    //Overlapping model section ===============================================================
 
+    public void InitOverlappingModel(InputModel inputModel, int patternSize, bool periodic) {
+        var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
+        patterns = new List<byte[,,]>();
+        probabilites = new Dictionary<int, double>();
+        
+        if (periodic) {
+            patternMatrix = new int[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
+        } else {
+            patternMatrix = new int[inputModel.Size.X - patternSize + 1,
+                inputModel.Size.Y - patternSize + 1,
+                inputModel.Size.Z - patternSize + 1];
+        }
+
+        inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
+
+        
+        for (var x = 0; x < patternMatrix.GetLength(0); x++) {
+            for (var y = 0; y < patternMatrix.GetLength(1); y++) {
+                for (var z = 0; z < patternMatrix.GetLength(2); z++) {
+                    var currentPattern = GetCurrentPattern(inputMatrix, x, y, z, patternSize);
+
+                    var index = patterns.ContainsPattern(currentPattern);
+                    if (index < 0) {
+                        patterns.Add(currentPattern);
+                        patternMatrix[x, y, z] = patterns.Count - 1;
+                        probabilites[patterns.Count - 1] = (double) 1 / patternMatrix.Length;
+                    }
+                    else {
+                        patternMatrix[x, y, z] = index;
+                        probabilites[index] += (double) 1 / patternMatrix.Length;
+                    }
+                }
+            }
+        }
+    }
+
+    private void FindNeighbours() {
+        neighboursMap = new Dictionary<int, Dictionary<Coord3D, List<int>>>();
+        
+        //Init the structure
+        for (var i = 0; i < patterns.Count; i++) {
+            neighboursMap[i] = new Dictionary<Coord3D, List<int>>();
+            for (var j = 0; j < (2 * patternSize - 1); j++) {
+                for (var k = 0; k < (2 * patternSize - 1); k++) {
+                    for (var l = 0; l < (2 * patternSize - 1); l++) {
+                        neighboursMap[i][new Coord3D(j, k, l)] = new List<int>();
+                    }
+                }
+            }
+        }
+        
+        for (var i = 0; i < patterns.Count; i++) {
+            for (var j = 0; j < patterns.Count; j++) {
+                ConvolutePatterns(i, j);
+            }
+        }
+    }
+
+    private void ConvolutePatterns(int patternIndex, int otherPatternIndex) {
+        var pattern = patterns[patternIndex];
+        var otherPattern = patterns[otherPatternIndex];
+
+        var h = otherPattern;
+
+        for (var i = 0; i < (2 * patternSize - 1); i++) {
+            for (var j = 0; j < (2 * patternSize - 1); j++) {
+                for (var k = 0; k < (2 * patternSize - 1); k++) {
+                    
+                    var f = ConstructKernel(pattern, otherPattern, i, j, k);
+
+                    var matchingVoxels = 0;
+                    for (var x = 0; x < patternSize; x++) {
+                        for (var y = 0; y < patternSize; y++) {
+                            for (var z = 0; z < patternSize; z++) {
+
+                                if (f[x + i, y + j, z + k] == h[x, y, z]) {
+                                    matchingVoxels++;
+                                }
+                            } 
+                        }
+                    }
+
+                    if (matchingVoxels == Math.Pow(patternSize, 3)) {
+                        //add to the pattern matrix
+                        neighboursMap[patternIndex][new Coord3D(i, j, k)].Add(otherPatternIndex);
+                    }
+                }
+            }
+        }
+    }
+
+    private byte[,,] ConstructKernel(byte[,,] pattern1, byte[,,] pattern2, int originX, int originY, int originZ) {
+        var kernelSize = patternSize + 2 * (patternSize - 1);
+        var res = new byte[kernelSize, kernelSize, kernelSize];
+
+
+        for (var x = 0; x < kernelSize; x++) {
+            for (var y = 0; y < kernelSize; y++) {
+                for (var z = 0; z < kernelSize; z++) {
+
+                    if ((x >= originX && x < originX + patternSize) &&
+                        (y >= originY && y < originY + patternSize) &&
+                        (z >= originZ && z < originZ + patternSize)) {
+
+                        res[x, y, z] = pattern2[x - originX, y - originY, z - originZ];
+                        
+                    }
+                    
+                    if((x >= patternSize - 1 && x < kernelSize - patternSize + 1) &&
+                       (y >= patternSize - 1 && y < kernelSize - patternSize + 1) &&
+                       (z >= patternSize - 1 && z < kernelSize - patternSize + 1)) {
+
+                        res[x, y, z] = pattern1[x - (patternSize - 1), y - (patternSize - 1), z - (patternSize - 1)];
+                    }
+                }
+            }
+        }
+        
+        return res;
+    }
+
+    public void Observe2() {
+
+        //Build a list of nodes that have not been collapsed into a definite state.
+        var collapsableNodes = GetCollapsableNodes();
+        
+        //Pick a random node from the collapsable nodes.
+        if (collapsableNodes.Count == 0) {
+            contradiction = true;
+            return;
+        }
+        var nodeCoords = collapsableNodes[Rnd.Next(collapsableNodes.Count)];
+        var availableNodeStates = outputMatrix[nodeCoords.X, nodeCoords.Y, nodeCoords.Z];
+        
+        if (probabilisticModel) {
+
+            //Eliminate all duplicates from the list of possible states.
+            availableNodeStates = availableNodeStates.Distinct().ToList().Shuffle().ToList();
+
+            //Choose a state according to the probability distribution of the states in the input model.
+            double runningTotal = 0;
+            var totalProb = probabilites.Select(x => x)
+                .Where(x => availableNodeStates.Contains(x.Key))
+                .Sum(x => x.Value);
+            var rndNumb = Rnd.NextDouble() * totalProb;
+            foreach (var availableNodeState in availableNodeStates) {
+                runningTotal += probabilites[availableNodeState];
+                if (runningTotal > rndNumb) {
+                    outputMatrix.SetValue(new List<int>() {availableNodeState}, nodeCoords.X, nodeCoords.Y,
+                        nodeCoords.Z);
+                    break;
+                }
+            }
+        } else {
+            //Collapse into random definite state.
+            outputMatrix.SetValue(new List<int>() { availableNodeStates[Rnd.Next(availableNodeStates.Count)] }, nodeCoords.X, nodeCoords.Y, nodeCoords.Z);
+        }
+        
+        
+        Propagate2(nodeCoords.X, nodeCoords.Y, nodeCoords.Z);
+
+        numGen++;
+    }
+
+    private void Propagate2(int x, int y, int z) {
+        //Reset the map that keeps track of the changes.
+        ReInitMapOfChanges();
+        
+        //Queue the first element.
+        var nodesToVisit = new Queue<Coord3D>();
+        nodesToVisit.Enqueue(new Coord3D(x, y, z));
+
+        while (nodesToVisit.Any()) {
+            var current = nodesToVisit.Dequeue();
+            
+            //Get the list of the allowed neighbours of the current node
+            var nghbrsMaps = outputMatrix[current.X, current.Y, current.Z]
+                .Select(possibleElem => NeighboursMap[possibleElem]).ToList();
+
+            var allowedNghbrs = nghbrsMaps.SelectMany(dict => dict)
+                .ToLookup(pair => pair.Key, pair => pair.Value)
+                .ToDictionary(group => group.Key, group => group.SelectMany(list => list).ToList());
+            
+            //For every possible direction check if the node has already been reached by the propagtion.
+            //If not, queue it up and mark it as visited, otherwise move on.
+            for (var dx = -patternSize + 1; dx < patternSize; dx++) {
+                for (var dy = -patternSize + 1; dy < patternSize; dy++) {
+                    for (var dz = -patternSize + 1; dz < patternSize; dz++) {
+                        
+                        var nodeToBeChanged = current.Add(dx, dy, dz);
+                        
+                        //Manage the periodic vs non-periodic cases.
+                        if (outputMatrix.OutOfBounds(nodeToBeChanged) && !Periodic) {
+                            continue;
+                        }
+                        
+                        if (outputMatrix.OutOfBounds(nodeToBeChanged) && Periodic) {
+                            nodeToBeChanged = new Coord3D(Mod(nodeToBeChanged.X, outputMatrix.GetLength(0)),
+                                Mod(nodeToBeChanged.Y, outputMatrix.GetLength(1)),
+                                Mod(nodeToBeChanged.Z, outputMatrix.GetLength(2)));
+                            
+                            if (mapOfChanges.OutOfBounds(nodeToBeChanged)) {
+                                continue;
+                            }
+                        }
+
+                        //Count the states before the propagation.
+                        var statesBefore = outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count;
+
+                        //Eliminate all neighbours that are not allowed form the output matrix
+                        var propMatrixDirection =
+                            new Coord3D(patternSize - 1 - dx, patternSize - 1 - dy, patternSize - 1 - dz);
+                        var allowedNghbrsInDirection =
+                            allowedNghbrs[propMatrixDirection].Distinct().ToList();
+
+                        outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z]
+                            .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
+
+                        if (outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count == 0) {
+                            contradiction = true;
+                            return;
+                        }
+                        
+                        //Count the states after, if nbBefore != nbAfter queue it up.
+                        var statesAfter = outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count;
+
+                        if (statesBefore != statesAfter) {
+
+                            if (!nodesToVisit.Contains(nodeToBeChanged)) {
+                                nodesToVisit.Enqueue(nodeToBeChanged);
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+        
+        generationFinished = CheckIfFinished();
+    }
+
+    public byte[,,] GetOutput2() {
+        var res = new byte[outputMatrix.GetLength(0), outputMatrix.GetLength(1), outputMatrix.GetLength(2)];
+        for (var x = 0; x < outputMatrix.GetLength(0); x++) {
+            for (var y = 0; y < outputMatrix.GetLength(1); y++) {
+                for (var z = 0; z < outputMatrix.GetLength(2); z++) {
+                    var pattern = outputMatrix[x, y, z].First();
+                    res[x, y, z] = patterns[pattern][0,0,0];
+                }
+            }
+        }
+        return res;
+    }
+
+    public static int Mod(int n, int m) {
+        return ((n % m) + m) % m;
+    }
 
 
     public Dictionary<int, Dictionary<Coord3D, List<int>>> NeighboursMap => neighboursMap;
+    
+    public bool Periodic => periodic;
 
     public bool GenerationFinished => generationFinished;
 
