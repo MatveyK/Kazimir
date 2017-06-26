@@ -332,37 +332,57 @@ public class DiscreteModel {
 
 		    //For every possible direction check if the node has already been affected by the propagation.
 		    //If it hasn't queue it up and mark it as visited, otherwise move on.
-            foreach (var direction in Directions) {
-                if (!mapOfChanges.OutOfBounds(current.Add(direction)) &&
-                    !mapOfChanges[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z] &&
-                    !outputMatrix.OutOfBounds(current.Add(direction))) {
+		    foreach (var direction in Directions) {
+		        var nodeToBeChanged = current.Add(direction.X, direction.Y, direction.Z);
 
-                    //Eliminate neighbours that are not allowed from the output matrix
-                    var allowedNghbrsInDirection = allowedNghbrs[direction].Distinct().ToList();
-                    outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z]
-                        .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
+		        if (outputMatrix.OutOfBounds(nodeToBeChanged) && !Periodic) {
+		            continue;
+		        }
 
-                    //Check for contradictions
-                    // TODO Add a backtrack recovery system to remedy the contradictions.
-                    if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count == 0) {
-                        try {
-                            ChosenPoints.Add(new Coord3D(x, y, z));
-                            RollbackState();
-                            TotalRollbacks++;
-                            return;
-                        }
-                        catch (InvalidOperationException e) {
-                            contradiction = true;
-                            return;
-                        }
-                    }
+		        if (outputMatrix.OutOfBounds(nodeToBeChanged) && Periodic) {
+		            nodeToBeChanged = new Coord3D(Mod(nodeToBeChanged.X, outputMatrix.GetLength(0)),
+		                Mod(nodeToBeChanged.Y, outputMatrix.GetLength(1)),
+		                Mod(nodeToBeChanged.Z, outputMatrix.GetLength(2)));
 
-                    //Queue it up in order to spread the info to its neighbours and mark it as visited.
-                    nodesToVisit.Enqueue(current.Add(direction));
-                    mapOfChanges.SetValue(true, current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z);
-                }
-            }
-        }
+		            if (mapOfChanges.OutOfBounds(nodeToBeChanged)) {
+		                continue;
+		            }
+		        }
+
+		        //Count the states before the propagation.
+		        var statesBefore = outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count;
+
+		        //Eliminate neighbours that are not allowed from the output matrix
+		        var allowedNghbrsInDirection = allowedNghbrs[direction].Distinct().ToList();
+		        outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z]
+		            .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
+
+		        //Count the states after, if nbBefore != nbAfter queue it up.
+		        var statesAfter = outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count;
+
+		        //Check for contradictions
+		        // TODO Add a backtrack recovery system to remedy the contradictions.
+		        if (outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count == 0) {
+		            try {
+		                ChosenPoints.Add(new Coord3D(x, y, z));
+		                RollbackState();
+		                TotalRollbacks++;
+		                return;
+		            }
+		            catch (InvalidOperationException e) {
+		                contradiction = true;
+		                return;
+		            }
+		        }
+
+		        //Queue it up in order to spread the info to its neighbours and mark it as visited.
+		        if (statesBefore != statesAfter) {
+		            if (!nodesToVisit.Contains(nodeToBeChanged)) {
+		                nodesToVisit.Enqueue(nodeToBeChanged);
+		            }
+		        }
+		    }
+		}
 
         ChosenPoints.Clear();
         if (TotalRollbacks > TOTAL_ROLLBACKS_ALLOWED) {
