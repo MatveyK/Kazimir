@@ -39,6 +39,8 @@ public class DiscreteModel {
     private bool contradiction = false;
     private int numGen;
 
+    private bool Ground;
+
 
     public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool periodic = true, bool addNeighbours = false, bool probabilisticModel = true) {
         mapOfChanges = new bool[outputSize.X, outputSize.Y, outputSize.Z];
@@ -55,7 +57,7 @@ public class DiscreteModel {
             FindNeighbours();
         }
         else {
-            InitSimpleModel(inputModel, patternSize);
+            InitSimpleModel(inputModel, patternSize, false);
             InitNeighboursMap(periodic);
             if (addNeighbours) {
                 DetectNeighbours();
@@ -72,13 +74,15 @@ public class DiscreteModel {
         Debug.Log("Model Ready!");
     }
 
-    public void InitSimpleModel(InputModel inputModel, int patternSize) {
+    public void InitSimpleModel(InputModel inputModel, int patternSize, bool ground) {
         var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
         patterns = new List<byte[,,]>();
         patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.X / patternSize)),
             (int) Math.Ceiling((double) (inputModel.Size.Y / patternSize)),
             (int) Math.Ceiling((double) (inputModel.Size.Z / patternSize))];
         probabilites = new Dictionary<int, double>();
+
+        Ground = ground;
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
         
@@ -154,7 +158,9 @@ public class DiscreteModel {
                         neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, y - 1, z]);
                     } else {
                         if (periodic) {
-                            neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, patternMatrix.GetLength(1) - 1, z]);
+                            if (!Ground) {
+                                neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, patternMatrix.GetLength(1) - 1, z]);
+                            }
                         }
                     }
                     if (y + 1 < patternMatrix.GetLength(1)) {
