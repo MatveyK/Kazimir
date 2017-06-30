@@ -66,7 +66,7 @@ public class Demo : MonoBehaviour {
         }
         //Write output to .vox format
         if (Input.GetKeyDown("w")) {
-            var rawOutput = model.GetOutput2();
+            var rawOutput = model.GetCleanOutput();
             var voxels = VoxReaderWriter.TransformOutputToVox(rawOutput);
             VoxReaderWriter.WriteVoxelFile(outVoxFileName, rawOutput.GetLength(0), rawOutput.GetLength(1), rawOutput.GetLength(2), voxels);
             Debug.Log($"Model written to {outVoxFileName}.vox !");
