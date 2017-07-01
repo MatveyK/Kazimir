@@ -9,6 +9,7 @@ public class Demo : MonoBehaviour {
     [SerializeField] private bool probabilisticModel = true;
     [SerializeField] private bool periodic = true;
     [SerializeField] private bool addNeighbours = false;
+    [SerializeField] private bool cleanOutput = false;
 
     private DiscreteModel model;
 
@@ -53,7 +54,13 @@ public class Demo : MonoBehaviour {
             //Stop displaying the input model.
             inputVoxelModelObj.SetActive(false);
 
-            var output = model.GetOutput2();
+            byte[,,] output;
+            if (!cleanOutput) {
+                output = model.GetOutput2();
+            }
+            else {
+                output = model.GetCleanOutput();
+            }
 
             DisplayOutput(output);
         }
@@ -66,7 +73,13 @@ public class Demo : MonoBehaviour {
         }
         //Write output to .vox format
         if (Input.GetKeyDown("w")) {
-            var rawOutput = model.GetCleanOutput();
+            byte[,,] rawOutput;
+            if (!cleanOutput) {
+                rawOutput = model.GetOutput2();
+            }
+            else {
+                rawOutput = model.GetCleanOutput();
+            }
             var voxels = VoxReaderWriter.TransformOutputToVox(rawOutput);
             VoxReaderWriter.WriteVoxelFile(outVoxFileName, rawOutput.GetLength(0), rawOutput.GetLength(1), rawOutput.GetLength(2), voxels);
             Debug.Log($"Model written to {outVoxFileName}.vox !");
