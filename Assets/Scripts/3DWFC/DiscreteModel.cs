@@ -39,6 +39,8 @@ public class DiscreteModel {
     private bool contradiction = false;
     private int numGen;
 
+    private bool Ground;
+
 
     public DiscreteModel(InputModel inputModel, int patternSize, Coord3D outputSize, bool overlapping = true, bool periodic = true, bool addNeighbours = false, bool probabilisticModel = true) {
         mapOfChanges = new bool[outputSize.X, outputSize.Y, outputSize.Z];
@@ -55,7 +57,7 @@ public class DiscreteModel {
             FindNeighbours();
         }
         else {
-            InitSimpleModel(inputModel, patternSize);
+            InitSimpleModel(inputModel, patternSize, false);
             InitNeighboursMap(periodic);
             if (addNeighbours) {
                 DetectNeighbours();
@@ -72,13 +74,15 @@ public class DiscreteModel {
         Debug.Log("Model Ready!");
     }
 
-    public void InitSimpleModel(InputModel inputModel, int patternSize) {
+    public void InitSimpleModel(InputModel inputModel, int patternSize, bool ground) {
         var inputMatrix = new byte[inputModel.Size.X, inputModel.Size.Y, inputModel.Size.Z];
         patterns = new List<byte[,,]>();
         patternMatrix = new int[(int) Math.Ceiling((double) (inputModel.Size.X / patternSize)),
             (int) Math.Ceiling((double) (inputModel.Size.Y / patternSize)),
             (int) Math.Ceiling((double) (inputModel.Size.Z / patternSize))];
         probabilites = new Dictionary<int, double>();
+
+        Ground = ground;
 
         inputModel.Voxels.ForEach(voxel => inputMatrix[voxel.X, voxel.Y, voxel.Z] = voxel.Color);
         
@@ -154,7 +158,9 @@ public class DiscreteModel {
                         neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, y - 1, z]);
                     } else {
                         if (periodic) {
-                            neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, patternMatrix.GetLength(1) - 1, z]);
+                            if (!Ground) {
+                                neighboursMap[currentPattern][Coord3D.Down].Add(patternMatrix[x, patternMatrix.GetLength(1) - 1, z]);
+                            }
                         }
                     }
                     if (y + 1 < patternMatrix.GetLength(1)) {
@@ -332,37 +338,57 @@ public class DiscreteModel {
 
 		    //For every possible direction check if the node has already been affected by the propagation.
 		    //If it hasn't queue it up and mark it as visited, otherwise move on.
-            foreach (var direction in Directions) {
-                if (!mapOfChanges.OutOfBounds(current.Add(direction)) &&
-                    !mapOfChanges[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z] &&
-                    !outputMatrix.OutOfBounds(current.Add(direction))) {
+		    foreach (var direction in Directions) {
+		        var nodeToBeChanged = current.Add(direction.X, direction.Y, direction.Z);
 
-                    //Eliminate neighbours that are not allowed from the output matrix
-                    var allowedNghbrsInDirection = allowedNghbrs[direction].Distinct().ToList();
-                    outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z]
-                        .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
+		        if (outputMatrix.OutOfBounds(nodeToBeChanged) && !Periodic) {
+		            continue;
+		        }
 
-                    //Check for contradictions
-                    // TODO Add a backtrack recovery system to remedy the contradictions.
-                    if (outputMatrix[current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z].Count == 0) {
-                        try {
-                            ChosenPoints.Add(new Coord3D(x, y, z));
-                            RollbackState();
-                            TotalRollbacks++;
-                            return;
-                        }
-                        catch (InvalidOperationException e) {
-                            contradiction = true;
-                            return;
-                        }
-                    }
+		        if (outputMatrix.OutOfBounds(nodeToBeChanged) && Periodic) {
+		            nodeToBeChanged = new Coord3D(Mod(nodeToBeChanged.X, outputMatrix.GetLength(0)),
+		                Mod(nodeToBeChanged.Y, outputMatrix.GetLength(1)),
+		                Mod(nodeToBeChanged.Z, outputMatrix.GetLength(2)));
 
-                    //Queue it up in order to spread the info to its neighbours and mark it as visited.
-                    nodesToVisit.Enqueue(current.Add(direction));
-                    mapOfChanges.SetValue(true, current.X + direction.X, current.Y + direction.Y, current.Z + direction.Z);
-                }
-            }
-        }
+		            if (mapOfChanges.OutOfBounds(nodeToBeChanged)) {
+		                continue;
+		            }
+		        }
+
+		        //Count the states before the propagation.
+		        var statesBefore = outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count;
+
+		        //Eliminate neighbours that are not allowed from the output matrix
+		        var allowedNghbrsInDirection = allowedNghbrs[direction].Distinct().ToList();
+		        outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z]
+		            .RemoveAll(neighbour => !allowedNghbrsInDirection.Contains(neighbour));
+
+		        //Count the states after, if nbBefore != nbAfter queue it up.
+		        var statesAfter = outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count;
+
+		        //Check for contradictions
+		        // TODO Add a backtrack recovery system to remedy the contradictions.
+		        if (outputMatrix[nodeToBeChanged.X, nodeToBeChanged.Y, nodeToBeChanged.Z].Count == 0) {
+		            try {
+		                ChosenPoints.Add(new Coord3D(x, y, z));
+		                RollbackState();
+		                TotalRollbacks++;
+		                return;
+		            }
+		            catch (InvalidOperationException e) {
+		                contradiction = true;
+		                return;
+		            }
+		        }
+
+		        //Queue it up in order to spread the info to its neighbours and mark it as visited.
+		        if (statesBefore != statesAfter) {
+		            if (!nodesToVisit.Contains(nodeToBeChanged)) {
+		                nodesToVisit.Enqueue(nodeToBeChanged);
+		            }
+		        }
+		    }
+		}
 
         ChosenPoints.Clear();
         if (TotalRollbacks > TOTAL_ROLLBACKS_ALLOWED) {
@@ -713,6 +739,19 @@ public class DiscreteModel {
         for (var x = 0; x < outputMatrix.GetLength(0); x++) {
             for (var y = 0; y < outputMatrix.GetLength(1); y++) {
                 for (var z = 0; z < outputMatrix.GetLength(2); z++) {
+                    var pattern = outputMatrix[x, y, z].First();
+                    res[x, y, z] = patterns[pattern][0,0,0];
+                }
+            }
+        }
+        return res;
+    }
+
+    public byte[,,] GetCleanOutput() {
+        var res = new byte[outputMatrix.GetLength(0), outputMatrix.GetLength(1), outputMatrix.GetLength(2)];
+        for (var x = 1; x < outputMatrix.GetLength(0) - 1; x++) {
+            for (var y = 1; y < outputMatrix.GetLength(1) - 1; y++) {
+                for (var z = 1; z < outputMatrix.GetLength(2) - 1; z++) {
                     var pattern = outputMatrix[x, y, z].First();
                     res[x, y, z] = patterns[pattern][0,0,0];
                 }
