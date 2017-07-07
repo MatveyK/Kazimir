@@ -20,6 +20,9 @@ public class VoxelModel : MonoBehaviour {
                         cube.transform.localPosition = new Vector3(x, y, z);
                         cube.transform.localScale = Vector3.one;
                         cube.transform.localRotation = Quaternion.identity;
+                        
+                        //Set colour from the .vox palette
+                        cube.GetComponent<Renderer>().material.color = VoxReaderWriter.Palette[output[x, y, z]];
 
                         cube.tag = "Voxel";
                     }
@@ -40,6 +43,9 @@ public class VoxelModel : MonoBehaviour {
             cube.transform.localPosition = new Vector3(voxel.X, voxel.Y, voxel.Z);
             cube.transform.localScale = Vector3.one;
             cube.transform.localRotation = Quaternion.identity;
+            
+            //Set colours from the .vox file
+            cube.GetComponent<Renderer>().material.color = VoxReaderWriter.Palette[voxel.Color];
 
             cube.tag = "Voxel";
         });
