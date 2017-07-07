@@ -64,8 +64,7 @@ public class Demo : MonoBehaviour {
     }
 
     protected void WriteToVoxFile() {
-        byte[,,] rawOutput;
-            rawOutput = Model.GetOutput();
+        var rawOutput = Model.GetOutput();
         var voxels = VoxReaderWriter.TransformOutputToVox(rawOutput);
         VoxReaderWriter.WriteVoxelFile(outVoxFileName, rawOutput.GetLength(0), rawOutput.GetLength(1), rawOutput.GetLength(2), voxels);
         Debug.Log($"Model written to {outVoxFileName}.vox !");

@@ -12,7 +12,7 @@ public class ConvolutionalModelDemo : Demo {
         Model = new ConvolutionalModel(inputModel, patternSize, outputSizeInCoord, periodic, probabilisticModel);
     }
 
-    private void Update() {
+    private new void Update() {
         base.Update();
     }
 }

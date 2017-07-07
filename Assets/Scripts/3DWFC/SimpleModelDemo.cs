@@ -12,7 +12,7 @@ public class SimpleModelDemo : Demo {
         Model = new SimpleModel(inputModel, patternSize, outputSizeInCoord, periodic, augmentNeighbours, probabilisticModel);
     }
 
-    private void Update() {
+    private new void Update() {
         base.Update();
     }
 }
