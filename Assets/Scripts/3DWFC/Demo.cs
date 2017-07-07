@@ -2,26 +2,23 @@
 
 
 public class Demo : MonoBehaviour {
-    [SerializeField] private string voxFileName = "castle";
+    [SerializeField] private string voxFileName = "building";
 
     [SerializeField] private bool optimise = false;
-    [SerializeField] private bool overlapping = true;
-    [SerializeField] private bool probabilisticModel = true;
-    [SerializeField] private bool periodic = true;
-    [SerializeField] private bool addNeighbours = false;
-    [SerializeField] private bool cleanOutput = false;
+    [SerializeField] protected bool probabilisticModel = true;
+    [SerializeField] protected bool periodic = true;
 
-    private Model model;
+    protected Model Model;
 
-    [SerializeField] private int patternSize = 2;
-    [SerializeField] Vector3 outputSize = new Vector3(5, 5, 5);
+    [SerializeField] protected int patternSize = 2;
+    [SerializeField] protected Vector3 outputSize = new Vector3(5, 5, 5);
 
     [SerializeField] private string outVoxFileName = "test";
 
     private GameObject inputVoxelModelObj;
     private GameObject outputVoxelModelObj;
 
-    private void Start() {
+    protected InputModel Init() {
         //Read the .vox file
         var inputModel = VoxReaderWriter.ReadVoxelFile(voxFileName);
 
@@ -33,51 +30,60 @@ public class Demo : MonoBehaviour {
         //Center the 3D model and init grid
         voxModel.transform.position = Vector3.zero;
 
-        var outputSizeInCoord = new Coord3D((int) outputSize.x, (int) outputSize.y, (int) outputSize.z);
-        if (overlapping) {
-            model = new ConvolutionalModel(inputModel, patternSize, outputSizeInCoord, periodic, probabilisticModel);
+        return inputModel;
+    }
+    
+
+    protected void GenerateOutput() {
+        while (!Model.GenerationFinished) {
+            Model.Observe();
+
+            if (Model.Contradiction) {
+                Debug.Log($"Generation Failed after {Model.NumGen} iterations!");
+                Model.Clear();
+            }
         }
-        else {
-            model = new SimpleModel(inputModel, patternSize, outputSizeInCoord, periodic, addNeighbours, probabilisticModel);
-        }
+        Debug.Log($"Generation finished after {Model.NumGen} iterations!");
     }
 
+    protected void DisplayOutput() {
+        //Stop displaying the input model.
+        inputVoxelModelObj.SetActive(false);
 
-    private void Update() {
+        var output = Model.GetOutput();
+
+        DisplayOutput(output);
+    }
+
+    protected void ClearModel() {
+        Model.Clear();
+        inputVoxelModelObj.SetActive(true);
+        Destroy(outputVoxelModelObj);
+        
+        Debug.Log("Model cleared!");
+    }
+
+    protected void WriteToVoxFile() {
+        byte[,,] rawOutput;
+            rawOutput = Model.GetOutput();
+        var voxels = VoxReaderWriter.TransformOutputToVox(rawOutput);
+        VoxReaderWriter.WriteVoxelFile(outVoxFileName, rawOutput.GetLength(0), rawOutput.GetLength(1), rawOutput.GetLength(2), voxels);
+        Debug.Log($"Model written to {outVoxFileName}.vox !");
+    }
+
+    protected void Update() {
         if (Input.GetKeyDown("space")) {
-            while (!model.GenerationFinished) {
-                model.Observe();
-
-                if (model.Contradiction) {
-                    Debug.Log($"Generation Failed after {model.NumGen} iterations!");
-                    model.Clear();
-                }
-            }
-            Debug.Log($"Generation finished after {model.NumGen} iterations!");
+            GenerateOutput();
         }
         if (Input.GetKeyDown("v")) {
-            //Stop displaying the input model.
-            inputVoxelModelObj.SetActive(false);
-
-            byte[,,] output;
-                output = model.GetOutput();
-
-            DisplayOutput(output);
+            DisplayOutput();
         }
         if (Input.GetKeyDown("c")) {
-            model.Clear();
-            inputVoxelModelObj.SetActive(true);
-            Destroy(outputVoxelModelObj);
-            
-            Debug.Log("Model cleared!");
+            ClearModel();
         }
         //Write output to .vox format
         if (Input.GetKeyDown("w")) {
-            byte[,,] rawOutput;
-                rawOutput = model.GetOutput();
-            var voxels = VoxReaderWriter.TransformOutputToVox(rawOutput);
-            VoxReaderWriter.WriteVoxelFile(outVoxFileName, rawOutput.GetLength(0), rawOutput.GetLength(1), rawOutput.GetLength(2), voxels);
-            Debug.Log($"Model written to {outVoxFileName}.vox !");
+            WriteToVoxFile();
         }
     }
 
