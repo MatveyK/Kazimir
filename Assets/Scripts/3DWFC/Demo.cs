@@ -11,7 +11,7 @@ public class Demo : MonoBehaviour {
     [SerializeField] private bool addNeighbours = false;
     [SerializeField] private bool cleanOutput = false;
 
-    private DiscreteModel model;
+    private Model model;
 
     [SerializeField] private int patternSize = 2;
     [SerializeField] Vector3 outputSize = new Vector3(5, 5, 5);
@@ -34,14 +34,19 @@ public class Demo : MonoBehaviour {
         voxModel.transform.position = Vector3.zero;
 
         var outputSizeInCoord = new Coord3D((int) outputSize.x, (int) outputSize.y, (int) outputSize.z);
-        model = new DiscreteModel(inputModel, patternSize, outputSizeInCoord, overlapping, periodic, addNeighbours, probabilisticModel);
+        if (overlapping) {
+            model = new ConvolutionalModel(inputModel, patternSize, outputSizeInCoord, periodic, probabilisticModel);
+        }
+        else {
+            model = new SimpleModel(inputModel, patternSize, outputSizeInCoord, periodic, addNeighbours, probabilisticModel);
+        }
     }
 
 
     private void Update() {
         if (Input.GetKeyDown("space")) {
             while (!model.GenerationFinished) {
-                model.Observe2();
+                model.Observe();
 
                 if (model.Contradiction) {
                     Debug.Log($"Generation Failed after {model.NumGen} iterations!");
@@ -55,12 +60,7 @@ public class Demo : MonoBehaviour {
             inputVoxelModelObj.SetActive(false);
 
             byte[,,] output;
-            if (!cleanOutput) {
-                output = model.GetOutput2();
-            }
-            else {
-                output = model.GetCleanOutput();
-            }
+                output = model.GetOutput();
 
             DisplayOutput(output);
         }
@@ -74,12 +74,7 @@ public class Demo : MonoBehaviour {
         //Write output to .vox format
         if (Input.GetKeyDown("w")) {
             byte[,,] rawOutput;
-            if (!cleanOutput) {
-                rawOutput = model.GetOutput2();
-            }
-            else {
-                rawOutput = model.GetCleanOutput();
-            }
+                rawOutput = model.GetOutput();
             var voxels = VoxReaderWriter.TransformOutputToVox(rawOutput);
             VoxReaderWriter.WriteVoxelFile(outVoxFileName, rawOutput.GetLength(0), rawOutput.GetLength(1), rawOutput.GetLength(2), voxels);
             Debug.Log($"Model written to {outVoxFileName}.vox !");
