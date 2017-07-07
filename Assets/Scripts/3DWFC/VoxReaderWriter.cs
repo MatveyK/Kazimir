@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable SuggestVarOrType_Elsewhere
@@ -8,12 +9,15 @@ using System.IO;
 
 public class VoxReaderWriter {
 
+    public static Color[] Palette { get; private set; }
 
     private static InputModel ReadVoxelStream(BinaryReader stream) {
         var voxels = new List<Voxel>();
         var modelX = 0;
         var modelY = 0;
         var modelZ = 0;
+        
+        Palette = new Color[256];
 
         string VOX = new string(stream.ReadChars(4));
         int version = stream.ReadInt32();
@@ -27,6 +31,8 @@ public class VoxReaderWriter {
             string chunkName = new string(chunkId);
 
             switch (chunkName) {
+                case "MAIN":
+                    break;
                 case "PACK":
                     int numModels = stream.ReadInt32();
                     break;
@@ -42,7 +48,11 @@ public class VoxReaderWriter {
                     for(var i = 0; i < numVoxels; i++) voxels.Add(new Voxel(stream));
                     break;
                 case "RGBA":
-                    //TODO Treat the RGBA chunks
+                    for (var i = 0; i < 255; i++) {
+                        var color = stream.ReadBytes(4);
+                        var col = new Color32(color[0], color[1], color[2], color[3]);
+                        Palette[i + 1] = col;
+                    }
                     stream.Close();
                     return new InputModel(new Coord3D(modelX, modelY, modelZ), voxels);
             }
