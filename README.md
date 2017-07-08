@@ -6,12 +6,12 @@ The long-term goal of the project is to try and completely automatise the creati
 This project presents two different models:
 
 1. **The Simple Model**: cuts up the input model into NxNxN unique patterns and then tries to infer the adjacency rules based on their positions in the input model.
-<p align="center"><img alt="main city1" src="http://imgur.com/DPTYsSQ"></p>
-<p align="center"><img alt="main city2" src="http://imgur.com/fLVaeQU"></p>
+<p align="center"><img src="http://imgur.com/DPTYsSQ.png"></p>
+<p align="center"><img alt="main city2" src="http://imgur.com/fLVaeQU.png"></p>
 
 2. **The Convolutional Model**: cuts up the input model into NxNxN unique patterns that overlap with each other and then tries to convolute all the possible pairs of unique patterns in order to define the adjacency rules. The reulst of this approach is that the algorithm can generate patterns that are completely new and not just the patterns seen in the input. Although this model is much slower and only works on small inputs (for now at least).
-<p align="center"><img alt="main hollowcube" src="http://imgur.com/OTuwnhZ"></p>
-<p align="center"><img alt="main magicube" src="http://imgur.com/Uf91sEA"></p>
+<p align="center"><img alt="main hollowcube" src="http://imgur.com/OTuwnhZ.png"></p>
+<p align="center"><img alt="main magicube" src="http://imgur.com/Uf91sEA.png"></p>
 
 ## Instructions
 Clone the repo and open the project in the Unity editor. In the `Assets/Scripts/ModSynth` folder, we have `SimpleModel.cs` and `ConvolutionalModel.cs` scripts which define the logic of the models and we have `SimpleModelDemo.cs` and `ConvolutionalModelDemo.cs` which we can attach to empty game pbjects in Unity. The flags which the user can set are:
@@ -20,7 +20,7 @@ Clone the repo and open the project in the Unity editor. In the `Assets/Scripts/
 2. `Probabilistic Model`: defines if the programme should use the pattern distribution in the input voxel model in order to choose the pattern that is chosen in the observation step. If the flag is set to false, the pattern is randomly chosen.
 3. `Periodic`: defines if the input voxel model is periodic or not (i.e. if it can be "loope over" or not).
 4. `Pattern Size`: defines the N for the pattern size (i.e. if pattern size is set to 3, then the patterns will be of size 3x3x3).
-5. `Output Size`: defines the desired size of the produced output. Meausured in patterns for the Simple Model and in voxels for the Convolutional Model (As of now should not be too big.)
+5. `Output Size`: defines the desired size of the produced output. Measured in patterns for the Simple Model and in voxels for the Convolutional Model (As of now should not be too big.)
 6. `Out Vox File Name`: defines the name of the `.vox` file name to which the output can be written.
 7. `Augment Neighbours`: only for the Simple Model. Tries to increase the amound of possible neighbours for each pattern by checking if two patterns can "fit" together for each possible direction.
 
