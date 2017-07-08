@@ -31,6 +31,8 @@ Once all the input and all the flags are set, press play and you should be able 
 * Press `w` to write the output to a .vox file which you can then use in MagicaVoxel.
 * Press `c` to clear the output.
 
+Examples can be found in the `TestScene`, which can be found in `Assets/Scenes` folder.
+
 Keep in mind that this project is still a **work in progress** and it is likely to be slow and not very stable.
 
 ## Based on work by

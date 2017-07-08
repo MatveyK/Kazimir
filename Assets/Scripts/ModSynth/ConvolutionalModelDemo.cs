@@ -2,7 +2,7 @@
 
 public class ConvolutionalModelDemo : Demo {
 
-    [SerializeField] private bool cleanOutput = false;
+    //[SerializeField] private bool cleanOutput = false;
 
     private void Start() {
         var inputModel = Init();

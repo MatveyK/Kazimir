@@ -4,7 +4,7 @@
 public class Demo : MonoBehaviour {
     [SerializeField] private string voxFileName = "building";
 
-    [SerializeField] private bool optimise = false;
+    //[SerializeField] private bool optimise = false;
     [SerializeField] protected bool probabilisticModel = true;
     [SerializeField] protected bool periodic = true;
 
@@ -25,7 +25,7 @@ public class Demo : MonoBehaviour {
         //Display the voxel model.
         inputVoxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
         var voxModel = inputVoxelModelObj?.GetComponent<VoxelModel>();
-        voxModel?.Display(inputModel.Voxels, optimise);
+        voxModel?.Display(inputModel.Voxels);
 
         //Center the 3D model and init grid
         voxModel.transform.position = Vector3.zero;
@@ -90,7 +90,7 @@ public class Demo : MonoBehaviour {
         outputVoxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
         var voxelModel = outputVoxelModelObj?.GetComponent<VoxelModel>();
 
-        voxelModel?.Display(output, optimise);
+        voxelModel?.Display(output);
 
         outputVoxelModelObj.transform.position = Vector3.zero;
     }

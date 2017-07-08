@@ -6,7 +6,7 @@ public class VoxelModel : MonoBehaviour {
     //Max number of vertices allowed in a single mesh by Unity
     private const double VertexLimit = 65500;
 
-    public void Display(byte[,,] output, bool optimise) {
+    public void Display(byte[,,] output, bool optimise = false) {
 
         var voxelCube = Resources.Load("Prefabs/Cube");
 
@@ -33,7 +33,7 @@ public class VoxelModel : MonoBehaviour {
         if(optimise) Optimise3DModel();
     }
 
-    public void Display(List<Voxel> voxels, bool optimise) {
+    public void Display(List<Voxel> voxels, bool optimise = false) {
         //Load the voxel prefab
         var voxelCube = Resources.Load("Prefabs/Cube");
 
