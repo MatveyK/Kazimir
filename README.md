@@ -1,4 +1,11 @@
 # Kazimir
+
+**EPFL | Media & Design Lab | Master Thesis Project**
+
+**Immanuel Koh (Supervisor)**
+
+**Jeffrey Huang (Professor)**
+
 Unity project that creates 3D voxel models that are similar to the input 3D voxel model, based on Model Synthesis and the WFC algorithm.
 
 The long-term goal of the project is to try and completely automatise the creation of 3D models that is costly and time-consuming. Using this project, the user can give a relatively small 3D model as an input and the algorithm will try and generate a larger 3D model that is consistent with the input.
