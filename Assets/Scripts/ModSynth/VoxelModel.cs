@@ -4,13 +4,11 @@ using UnityEngine;
 public class VoxelModel : MonoBehaviour {
 
     //Max number of vertices allowed in a single mesh
-    private const int VertexLimit = 30000;
+    private const int VertexLimit = 60000;
 
-    private List<GameObject> allVoxels = new List<GameObject>();
+    private readonly List<GameObject> allVoxels = new List<GameObject>();
 
-    public GameObject CombinedVoxelObj;
-
-    public void Display(byte[,,] output, bool optimise = false) {
+    public void Display(byte[,,] output, bool optimise = true) {
 
         var voxelCube = Resources.Load("Prefabs/Cube");
 
@@ -35,11 +33,16 @@ public class VoxelModel : MonoBehaviour {
                 }
             }
         }
-        
-        if(optimise) combineVoxelMeshes();
+
+        if (optimise) {
+            combineVoxelMeshes();
+            foreach (var voxel in allVoxels) {
+                Destroy(voxel);
+            }
+        }
     }
 
-    public void Display(List<Voxel> voxels, bool optimise = false) {
+    public void Display(List<Voxel> voxels, bool optimise = true) {
         //Load the voxel prefab
         var voxelCube = Resources.Load("Prefabs/Cube");
 
@@ -56,8 +59,13 @@ public class VoxelModel : MonoBehaviour {
             cube.tag = "Voxel";
         });
         Debug.Log("TOTAL CUBES: " + voxels.Count);
-        
-        if(optimise) combineVoxelMeshes();
+
+        if (optimise) {
+            combineVoxelMeshes();
+            foreach (var voxel in allVoxels) {
+                Destroy(voxel);
+            }
+        }
     }
     
     
@@ -99,7 +107,7 @@ public class VoxelModel : MonoBehaviour {
                 voxelList.RemoveAt(voxelList.Count - 1);
                 
                 //Now we can create a combined mesh of the meshes we have collected so far
-                CreateCombinedMesh(voxelList, CombinedVoxelObj, combinedMeshList);
+                CreateCombinedMesh(voxelList, combinedMeshList);
                 
                 //Reset the lists with mesh data
                 voxelList.Clear();
@@ -109,24 +117,29 @@ public class VoxelModel : MonoBehaviour {
             }
         }
 
-        CreateCombinedMesh(voxelList, CombinedVoxelObj, combinedMeshList);
+        CreateCombinedMesh(voxelList, combinedMeshList);
     }
     
     //Creates a combined mesh from a list and adds it to a game object
-    void CreateCombinedMesh(List<CombineInstance> meshDataList, GameObject meshHolderObj,
-        List<GameObject> combinedHolderList) {
+    void CreateCombinedMesh(List<CombineInstance> meshDataList, List<GameObject> combinedHolderList) {
         
         //Create the new combined mesh
         var newMesh = new Mesh();
         newMesh.CombineMeshes(meshDataList.ToArray());
         
+        var meshHolderObj = new GameObject();
+        
         //Create new game object that will hold the combined mesh
         var combinedMeshHolder = Instantiate(meshHolderObj, Vector3.zero, Quaternion.identity);
 
         combinedMeshHolder.transform.parent = transform;
+
+        combinedMeshHolder.AddComponent<MeshFilter>();
+        combinedMeshHolder.AddComponent<MeshRenderer>();
         
         //Add to the mesh
         combinedMeshHolder.GetComponent<MeshFilter>().mesh = newMesh;
+        combinedMeshHolder.GetComponent<MeshRenderer>().material.color = Color.white;
         
         //Add the combined holder to the list
         combinedHolderList.Add(combinedMeshHolder);
