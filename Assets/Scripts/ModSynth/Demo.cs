@@ -90,7 +90,7 @@ public class Demo : MonoBehaviour {
         outputVoxelModelObj = Instantiate(Resources.Load("Prefabs/VoxelModel")) as GameObject;
         var voxelModel = outputVoxelModelObj?.GetComponent<VoxelModel>();
 
-        voxelModel?.Display(output);
+        voxelModel?.Display(output, true);
 
         outputVoxelModelObj.transform.position = Vector3.zero;
     }

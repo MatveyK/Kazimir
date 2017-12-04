@@ -3,8 +3,12 @@ using UnityEngine;
 
 public class VoxelModel : MonoBehaviour {
 
-    //Max number of vertices allowed in a single mesh by Unity
-    private const double VertexLimit = 65500;
+    //Max number of vertices allowed in a single mesh
+    private const int VertexLimit = 30000;
+
+    private List<GameObject> allVoxels = new List<GameObject>();
+
+    public GameObject CombinedVoxelObj;
 
     public void Display(byte[,,] output, bool optimise = false) {
 
@@ -25,12 +29,14 @@ public class VoxelModel : MonoBehaviour {
                         cube.GetComponent<Renderer>().material.color = VoxReaderWriter.Palette[output[x, y, z]];
 
                         cube.tag = "Voxel";
+                        
+                        allVoxels.Add(cube);
                     }
                 }
             }
         }
         
-        if(optimise) Optimise3DModel();
+        if(optimise) combineVoxelMeshes();
     }
 
     public void Display(List<Voxel> voxels, bool optimise = false) {
@@ -51,61 +57,79 @@ public class VoxelModel : MonoBehaviour {
         });
         Debug.Log("TOTAL CUBES: " + voxels.Count);
         
-        if(optimise) Optimise3DModel();
+        if(optimise) combineVoxelMeshes();
     }
+    
+    
+    public List<GameObject> combinedMeshList = new List<GameObject>();
 
-    private void Optimise3DModel() {
-        MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>();
-
-        var organisedMeshFilters = OrganiseMeshes(meshFilters);
-
-        foreach (var organisedMeshFilter in organisedMeshFilters) {
-            CombineInstance[] combine = new CombineInstance[organisedMeshFilter.Count];
-            for (var i = 0; i < organisedMeshFilter.Count; i++) {
-                combine[i].mesh = organisedMeshFilter[i].sharedMesh;
-                combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
-                organisedMeshFilter[i].gameObject.SetActive(false);
-            }
-
-            //Create a new game object for each large mesh
-            //TODO Look into a solution that uses submeshes
-            var gameObj = new GameObject();
-
-            //Combine the voxel meshes to form one big mesh
-            gameObj.AddComponent<MeshFilter>();
-            gameObj.transform.GetComponent<MeshFilter>().mesh = new Mesh();
-            gameObj.transform.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
-
-            //Add the renderer with a default material
-            gameObj.AddComponent<MeshRenderer>();
-            gameObj.GetComponent<MeshRenderer>().enabled = true;
-            gameObj.GetComponent<MeshRenderer>().material = Resources.Load("Materials/VoxelMaterial") as Material;
-
-            //Set the object containing the mesh as the child of the current object
-            gameObj.transform.parent = transform;
-            transform.gameObject.SetActive(true);
-        }
-    }
-
-    private static List<List<MeshFilter>> OrganiseMeshes(MeshFilter[] meshFilters) {
-        var res = new List<List<MeshFilter>>();
+    //Combine the voxel meshes
+    private void combineVoxelMeshes() {
+        var voxelList = new List<CombineInstance>();
+        
+        var combine = new CombineInstance();
+        
+        //Keep track of the vertices in the list so we know when we have reached the limit.
         var verticesSoFar = 0;
+        
+        //Keep track of which gameobject the mesh has been combined into.
+        var meshListCounter = 0;
+        
+        //Loop through all the voxels.
+        for (var i = 0; i < allVoxels.Count; i++) {
+            allVoxels[i].SetActive(false);
+            
+            //Get the mesh
+            MeshFilter meshFilter = allVoxels[i].GetComponent<MeshFilter>();
 
-        var index = 0;
-        res.Add(new List<MeshFilter>());
-        var currList = res[index];
-        for (var i = 0; i < meshFilters.Length; i++) {
-            if (verticesSoFar + meshFilters[i].mesh.vertexCount > VertexLimit) {
-                index++;
-                res.Add(new List<MeshFilter>());
-                currList = res[index];
+            combine.mesh = meshFilter.mesh;
+            combine.transform = meshFilter.transform.localToWorldMatrix;
+            
+            //Add it to the list of the mesh data
+            voxelList.Add(combine);
+
+            verticesSoFar += meshFilter.mesh.vertexCount;
+            
+            //Have we reached the limit?
+            if (verticesSoFar > VertexLimit) {
+                //If so we have added too many vertices, we thus undo the last step
+                i -= 1;
+                
+                //And we remove the last mesh added to the list
+                voxelList.RemoveAt(voxelList.Count - 1);
+                
+                //Now we can create a combined mesh of the meshes we have collected so far
+                CreateCombinedMesh(voxelList, CombinedVoxelObj, combinedMeshList);
+                
+                //Reset the lists with mesh data
+                voxelList.Clear();
+
                 verticesSoFar = 0;
+                meshListCounter++;
             }
-
-            currList.Add(meshFilters[i]);
-            verticesSoFar += meshFilters[i].mesh.vertexCount;
         }
 
-        return res;
+        CreateCombinedMesh(voxelList, CombinedVoxelObj, combinedMeshList);
     }
+    
+    //Creates a combined mesh from a list and adds it to a game object
+    void CreateCombinedMesh(List<CombineInstance> meshDataList, GameObject meshHolderObj,
+        List<GameObject> combinedHolderList) {
+        
+        //Create the new combined mesh
+        var newMesh = new Mesh();
+        newMesh.CombineMeshes(meshDataList.ToArray());
+        
+        //Create new game object that will hold the combined mesh
+        var combinedMeshHolder = Instantiate(meshHolderObj, Vector3.zero, Quaternion.identity);
+
+        combinedMeshHolder.transform.parent = transform;
+        
+        //Add to the mesh
+        combinedMeshHolder.GetComponent<MeshFilter>().mesh = newMesh;
+        
+        //Add the combined holder to the list
+        combinedHolderList.Add(combinedMeshHolder);
+    }
+
 }
