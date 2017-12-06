@@ -1,6 +1,6 @@
 # Kazimir
 
-**EPFL | Media & Design Lab | Master Thesis Project**
+**EPFL | Media & Design Lab | Master Project**
 
 **Immanuel Koh (Supervisor)**
 
