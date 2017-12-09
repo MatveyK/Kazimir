@@ -8,7 +8,7 @@ public class VoxelModel : MonoBehaviour {
 
     private readonly List<GameObject> allVoxels = new List<GameObject>();
 
-    public void Display(byte[,,] output, bool optimise = true) {
+    public void Display(byte[,,] output) {
 
         var voxelCube = Resources.Load("Prefabs/Cube");
 
@@ -34,15 +34,14 @@ public class VoxelModel : MonoBehaviour {
             }
         }
 
-        if (optimise) {
-            combineVoxelMeshes();
-            foreach (var voxel in allVoxels) {
-                Destroy(voxel);
-            }
+        //Combine the meshes to get a more optimal performance and destroy the voxel objects.
+        CombineVoxelMeshes();
+        foreach (var voxel in allVoxels) {
+            Destroy(voxel);
         }
     }
 
-    public void Display(List<Voxel> voxels, bool optimise = true) {
+    public void Display(List<Voxel> voxels) {
         //Load the voxel prefab
         var voxelCube = Resources.Load("Prefabs/Cube");
 
@@ -60,11 +59,10 @@ public class VoxelModel : MonoBehaviour {
         });
         Debug.Log("TOTAL CUBES: " + voxels.Count);
 
-        if (optimise) {
-            combineVoxelMeshes();
-            foreach (var voxel in allVoxels) {
-                Destroy(voxel);
-            }
+        //Combine the meshes to get a more optimal performance and destroy the voxel objects.
+        CombineVoxelMeshes();
+        foreach (var voxel in allVoxels) {
+            Destroy(voxel);
         }
     }
     
@@ -72,7 +70,7 @@ public class VoxelModel : MonoBehaviour {
     public List<GameObject> combinedMeshList = new List<GameObject>();
 
     //Combine the voxel meshes
-    private void combineVoxelMeshes() {
+    private void CombineVoxelMeshes() {
         var voxelList = new List<CombineInstance>();
         
         var combine = new CombineInstance();
@@ -121,7 +119,7 @@ public class VoxelModel : MonoBehaviour {
     }
     
     //Creates a combined mesh from a list and adds it to a game object
-    void CreateCombinedMesh(List<CombineInstance> meshDataList, List<GameObject> combinedHolderList) {
+    private void CreateCombinedMesh(List<CombineInstance> meshDataList, List<GameObject> combinedHolderList) {
         
         //Create the new combined mesh
         var newMesh = new Mesh();
